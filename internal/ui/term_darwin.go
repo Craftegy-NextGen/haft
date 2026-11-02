@@ -3,7 +3,6 @@
 package ui
 
 import (
-	"fmt"
 	"os"
 	"syscall"
 	"unsafe"
