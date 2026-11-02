@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func requireSourceSelectionWithoutWrite(t *testing.T, c Config) {
@@ -43,8 +45,8 @@ func TestT02RSourceInsideCopiedProjectNeedsExplicitSelection(t *testing.T) {
 	copyForNew := filepath.Join(base, "copy-new")
 	copyForOld := filepath.Join(base, "copy-old")
 	oldSource := filepath.Join(original, "FPF")
-	oldBinary := filepath.Join(base, "old-bin", "haft10")
-	newBinary := filepath.Join(base, "new-bin", "haft10")
+	oldBinary := testpath.Exe(filepath.Join(base, "old-bin", "haft10"))
+	newBinary := testpath.Exe(filepath.Join(base, "new-bin", "haft10"))
 	write(t, original, "FPF/PIN", "old pinned publication")
 	fakeExecutable(t, oldBinary)
 	fakeExecutable(t, newBinary)
@@ -129,7 +131,7 @@ func TestT02RRootEqualSourceAndPhysicalSymlinkComparison(t *testing.T) {
 	original := filepath.Join(base, "original")
 	copyRoot := filepath.Join(base, "copy")
 	alias := filepath.Join(base, "original-link")
-	binary := filepath.Join(base, "bin", "haft10")
+	binary := testpath.Exe(filepath.Join(base, "bin", "haft10"))
 	write(t, original, "FPF/PIN", "pinned publication")
 	fakeExecutable(t, binary)
 	if _, err := Init(Config{Root: original, Binary: binary, SourceRoot: original, Codex: true}); err != nil {
@@ -156,7 +158,7 @@ func TestT02RExternalAndPrefixSiblingSourceCanBeInherited(t *testing.T) {
 			original := filepath.Join(base, "original")
 			copyRoot := filepath.Join(base, "copy")
 			source := filepath.Join(base, name, "FPF")
-			binary := filepath.Join(base, "bin", "haft10")
+			binary := testpath.Exe(filepath.Join(base, "bin", "haft10"))
 			write(t, original, "operator.txt", "keep")
 			write(t, source, "PIN", "shared publication")
 			fakeExecutable(t, binary)

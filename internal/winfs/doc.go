@@ -6,7 +6,8 @@
 //     handle-relative, no-follow opens, creates, removes, renames and links;
 //   - G2, G6, sameFilesystem: FILE_ID_INFO identity ([FileID]);
 //   - G3, G4: exclusive create and install without replace;
-//   - G5: LockFileEx file locks and share-mode directory locks ([DirLock]);
+//   - G5: LockFileEx file locks and identity-keyed directory locks
+//     ([IdentityLock], a named mutex per FILE_ID_INFO);
 //   - G6: private files (explicit owner plus protected owner-only DACL);
 //   - G7: directory durability ([SyncDirectory], [OpenDirectoryForSync]).
 //

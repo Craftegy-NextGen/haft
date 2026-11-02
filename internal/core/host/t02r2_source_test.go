@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestT02R2HistoricalLinkedExternalSourceSurvivesOriginalMove(t *testing.T) {
@@ -110,7 +112,7 @@ func TestT02R2T02PhysicalSourceControlAndMissingSource(t *testing.T) {
 	original := filepath.Join(base, "original")
 	copied := filepath.Join(base, "copied")
 	shared := filepath.Join(base, "shared", "FPF")
-	binary := filepath.Join(base, "bin", "haft10")
+	binary := testpath.Exe(filepath.Join(base, "bin", "haft10"))
 	fakeExecutable(t, binary)
 	write(t, original, "operator.txt", "keep")
 	write(t, shared, "PIN", "shared publication")
@@ -149,7 +151,7 @@ func TestT02R2AvailableRootIdentityUsesSameFile(t *testing.T) {
 	base := t.TempDir()
 	root := filepath.Join(base, "ProjectCase")
 	otherSpelling := filepath.Join(base, "projectcase")
-	binary := filepath.Join(base, "bin", "haft10")
+	binary := testpath.Exe(filepath.Join(base, "bin", "haft10"))
 	write(t, root, "FPF/PIN", "pinned")
 	fakeExecutable(t, binary)
 	rootInfo, err := os.Stat(root)

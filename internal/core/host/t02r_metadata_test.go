@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func t02rManagedPaths() []string {
@@ -27,7 +29,7 @@ func TestT02RInitPreflightKeepsEveryUncompletedPath(t *testing.T) {
 	if _, err := Init(c); err != nil {
 		t.Fatal(err)
 	}
-	newBinary := filepath.Join(t.TempDir(), "new-haft10")
+	newBinary := testpath.Exe(filepath.Join(t.TempDir(), "new-haft10"))
 	fakeExecutable(t, newBinary)
 	c.Binary = newBinary
 	skill := filepath.Join(c.Root, ".agents", "skills", "h-spec", "SKILL.md")

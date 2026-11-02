@@ -72,39 +72,52 @@ func TestProbePaLockFileExOnDirectoryHandle(t *testing.T) {
 		"and the second fails with ERROR_LOCK_VIOLATION")
 }
 
+// shareLockAccess is the access of the option 4a share-mode directory lock
+// that WS5 measured here and WS7 removed (ADR-092 O4 as amended): write-data
+// access with a share mode without FILE_SHARE_WRITE.
+const shareLockAccess = windows.FILE_WRITE_DATA | windows.FILE_READ_ATTRIBUTES | windows.SYNCHRONIZE
+
+func openShareLock(path string) (windows.Handle, error) {
+	return createFile(path, shareLockAccess, windows.FILE_SHARE_READ|windows.FILE_SHARE_DELETE,
+		windows.OPEN_EXISTING, windows.FILE_FLAG_BACKUP_SEMANTICS|windows.FILE_FLAG_OPEN_REPARSE_POINT, nil)
+}
+
+// P-b is kept as evidence for ADR-092 O4: it measures the share-mode lock
+// that the WS5 decision (4a) relied on, including the WS7 finding that made
+// the operator replace it with the identity lock (4c): renames and hard links
+// into the locked directory fail even in the holding process.
 func TestProbePbShareModeExclusionOnDirectory(t *testing.T) {
 	path := t.TempDir()
 	t.Logf("P-b: filesystem %s", volumeFilesystem(path))
-	lock, err := TryLockDir(path)
+	lock, err := openShareLock(path)
 	if err != nil {
 		t.Fatalf("P-b: first lock open (FILE_WRITE_DATA, share READ|DELETE) failed: %s", describe(err))
 	}
 	t.Logf("P-b: first lock open: success")
-	second, err := createFile(path, dirLockAccess, windows.FILE_SHARE_READ|windows.FILE_SHARE_DELETE,
-		windows.OPEN_EXISTING, windows.FILE_FLAG_BACKUP_SEMANTICS, nil)
+	second, err := openShareLock(path)
 	if err == nil {
 		closeHandle(second)
 	}
 	t.Logf("P-b: second identical open while held: %s", describe(err))
 	if !errors.Is(err, windows.ERROR_SHARING_VIOLATION) {
-		t.Fatalf("P-b: decided mapping 4a needs ERROR_SHARING_VIOLATION for the second open, got %s", describe(err))
+		t.Fatalf("P-b: share-mode exclusion needs ERROR_SHARING_VIOLATION for the second open, got %s", describe(err))
 	}
 	plain, err := os.Open(path)
 	t.Logf("P-b: os.Open of the locked directory (Go share READ|WRITE): %s", describe(err))
 	if err != nil {
-		t.Fatalf("P-b: 4a must not block ordinary directory opens: %v", err)
+		t.Fatalf("P-b: the share-mode lock blocked an ordinary directory open: %v", err)
 	}
 	_ = plain.Close()
 	held, err := OpenDir(path)
 	t.Logf("P-b: winfs.OpenDir of the locked directory: %s", describe(err))
 	if err != nil {
-		t.Fatalf("P-b: 4a must not block held directory handles: %v", err)
+		t.Fatalf("P-b: the share-mode lock blocked a held directory handle: %v", err)
 	}
 	_ = held.Close()
 	err = os.WriteFile(filepath.Join(path, "entry"), []byte("x"), 0o644)
 	t.Logf("P-b: creating a file inside the locked directory: %s", describe(err))
 	if err != nil {
-		t.Fatalf("P-b: 4a must not block writes inside the directory: %v", err)
+		t.Fatalf("P-b: the share-mode lock blocked a write inside the directory: %v", err)
 	}
 	writer, err := createFile(path, windows.FILE_WRITE_DATA, shareAll, windows.OPEN_EXISTING,
 		windows.FILE_FLAG_BACKUP_SEMANTICS, nil)
@@ -112,25 +125,27 @@ func TestProbePbShareModeExclusionOnDirectory(t *testing.T) {
 		closeHandle(writer)
 	}
 	t.Logf("P-b: another write-access open (as a directory flush needs) while held: %s", describe(err))
+	err = os.Rename(filepath.Join(path, "entry"), filepath.Join(path, "renamed-entry"))
+	t.Logf("P-b (WS7): renaming a file inside the locked directory: %s", describe(err))
+	err = os.Link(filepath.Join(path, "entry"), filepath.Join(path, "linked-entry"))
+	t.Logf("P-b (WS7): hard-linking a file inside the locked directory: %s", describe(err))
 	renamed := path + "-renamed"
 	err = os.Rename(path, renamed)
 	t.Logf("P-b: renaming the locked directory through its path: %s", describe(err))
 	if err == nil {
 		_ = os.Rename(renamed, path)
 	}
-	if err := lock.Unlock(); err != nil {
-		t.Fatalf("P-b: unlock: %v", err)
-	}
+	closeHandle(lock)
 	elapsed, err := eventually(5*time.Second, func() error {
-		again, err := TryLockDir(path)
+		again, err := openShareLock(path)
 		if err == nil {
-			return again.Unlock()
+			closeHandle(again)
 		}
 		return err
 	})
-	t.Logf("P-b: lock again after close: %s after %v (cross-process release: TestDirLockTwoProcesses)", describe(err), elapsed)
+	t.Logf("P-b: lock again after close: %s after %v", describe(err), elapsed)
 	if err != nil {
-		t.Fatalf("P-b: the directory lock was not released on close: %v", err)
+		t.Fatalf("P-b: the share-mode lock was not released on close: %v", err)
 	}
 }
 

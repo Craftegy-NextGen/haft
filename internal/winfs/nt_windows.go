@@ -301,16 +301,6 @@ func (info fileAttributeTagInfo) check(wantDirectory bool) error {
 	return nil
 }
 
-// checkFinalComponent applies check to a handle opened with
-// FILE_OPEN_REPARSE_POINT whose data is never read (a directory lock).
-func checkFinalComponent(handle windows.Handle, wantDirectory bool) error {
-	info, err := attributeTag(handle)
-	if err != nil {
-		return err
-	}
-	return info.check(wantDirectory)
-}
-
 // finishDataOpen completes an open whose handle will carry data or anchor
 // relative opens. The handle was opened with FILE_OPEN_REPARSE_POINT, so
 // nothing was followed. A symbolic link or junction is now rejected (ELOOP).

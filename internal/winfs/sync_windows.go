@@ -35,9 +35,7 @@ func SkippedDirectorySyncs() uint64 {
 // at path like open(2) without O_NOFOLLOW, opens the directory for write with
 // FILE_FLAG_BACKUP_SEMANTICS and calls FlushFileBuffers. Only
 // ERROR_ACCESS_DENIED and ERROR_INVALID_FUNCTION return SyncSkipped with a nil
-// error; every other failure is returned. If this process holds a DirLock on
-// the directory, the share mode of that lock refuses a second write open, so
-// the flush goes through the lock's own handle.
+// error; every other failure is returned.
 func SyncDirectory(path string) (SyncOutcome, error) {
 	open := func() (windows.Handle, error) {
 		return createFile(
@@ -49,10 +47,7 @@ func SyncDirectory(path string) (SyncOutcome, error) {
 			nil,
 		)
 	}
-	identity := func() (FileID, error) {
-		return PathIdentity(path)
-	}
-	outcome, err := syncDirectory(open, identity)
+	outcome, err := syncDirectory(open)
 	if err != nil {
 		return 0, &os.PathError{Op: "sync", Path: path, Err: err}
 	}
@@ -68,10 +63,7 @@ func SyncDirectory(path string) (SyncOutcome, error) {
 // write, delete); like os.Open it follows a reparse point at path.
 //
 // Unlike SyncDirectory there is no SyncSkipped fallback: every open and flush
-// error reaches the caller, as on Unix. A DirLock held on the directory, in
-// this or another process, refuses the write open with
-// ERROR_SHARING_VIOLATION; use SyncDirectory for a directory that may be
-// locked.
+// error reaches the caller, as on Unix.
 func OpenDirectoryForSync(path string) (*os.File, error) {
 	if err := requireAbsolute(path); err != nil {
 		return nil, &os.PathError{Op: "open", Path: path, Err: err}
@@ -99,11 +91,8 @@ func (dir *Dir) Sync() (SyncOutcome, error) {
 		open := func() (windows.Handle, error) {
 			return ntOpen(root, "", windows.FILE_WRITE_DATA, windows.FILE_OPEN, windows.FILE_DIRECTORY_FILE, nil)
 		}
-		identity := func() (FileID, error) {
-			return handleFileID(root)
-		}
 		var err error
-		outcome, err = syncDirectory(open, identity)
+		outcome, err = syncDirectory(open)
 		return err
 	})
 	if err != nil {
@@ -112,11 +101,8 @@ func (dir *Dir) Sync() (SyncOutcome, error) {
 	return outcome, nil
 }
 
-func syncDirectory(open func() (windows.Handle, error), identity func() (FileID, error)) (SyncOutcome, error) {
+func syncDirectory(open func() (windows.Handle, error)) (SyncOutcome, error) {
 	handle, err := open()
-	if errors.Is(err, windows.ERROR_SHARING_VIOLATION) {
-		return syncThroughDirLock(identity, err)
-	}
 	if err != nil {
 		return syncResult(err)
 	}
@@ -135,19 +121,4 @@ func syncResult(err error) (SyncOutcome, error) {
 		return SyncSkipped, nil
 	}
 	return 0, err
-}
-
-// syncThroughDirLock flushes a directory that this process holds a DirLock on.
-// Any other sharing violation is returned unchanged: a directory locked by
-// another process cannot be flushed until that lock is released.
-func syncThroughDirLock(identity func() (FileID, error), cause error) (SyncOutcome, error) {
-	id, err := identity()
-	if err != nil {
-		return 0, errors.Join(cause, err)
-	}
-	flushed, err := flushHeldDirLock(id)
-	if !flushed {
-		return 0, cause
-	}
-	return syncResult(err)
 }

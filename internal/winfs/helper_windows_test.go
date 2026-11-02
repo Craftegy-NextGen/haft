@@ -32,7 +32,9 @@ var helperHeld any
 // contention tests start by re-executing the test binary. It takes the lock
 // named by the role, reports ready, and holds the lock until its stdin
 // closes. It then returns without unlocking or closing, so only the kernel's
-// cleanup at process exit can release the lock.
+// cleanup at process exit can release the lock; the role
+// "identity-release" instead unlocks its IdentityLock on this goroutine
+// before it returns.
 func TestHelperProcess(t *testing.T) {
 	role := os.Getenv(helperRoleEnv)
 	if role == "" {
@@ -46,6 +48,11 @@ func TestHelperProcess(t *testing.T) {
 	helperHeld = held
 	fmt.Println(helperReady)
 	_, _ = io.Copy(io.Discard, os.Stdin)
+	if role == "identity-release" {
+		if err := held.(*IdentityLock).Unlock(); err != nil {
+			t.Fatalf("helper unlock: %v", err)
+		}
+	}
 }
 
 func takeHelperLock(role string, path string) (any, error) {
@@ -63,8 +70,8 @@ func takeHelperLock(role string, path string) (any, error) {
 			return nil, err
 		}
 		return file, nil
-	case "dir":
-		return TryLockDir(path)
+	case "identity", "identity-release":
+		return TryLockIdentity(path)
 	}
 	return nil, fmt.Errorf("unknown helper role %q", role)
 }

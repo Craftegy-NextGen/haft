@@ -239,7 +239,7 @@ func requireSecureSnapshotFile(path string) error {
 	if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
 		return fmt.Errorf("serve migration snapshot is not a regular file")
 	}
-	if info.Mode().Perm() != 0o600 {
+	if insecureSnapshotFileMode(info) {
 		return fmt.Errorf(
 			"serve migration snapshot mode = %04o, want 0600",
 			info.Mode().Perm(),

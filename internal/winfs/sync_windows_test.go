@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"golang.org/x/sys/windows"
 )
@@ -63,24 +62,6 @@ func TestOpenDirectoryForSyncErrors(t *testing.T) {
 	}
 }
 
-// No fallback is hidden here: a directory under a DirLock cannot be opened
-// for write, in the holding process too, and the error is returned.
-func TestOpenDirectoryForSyncUnderDirLockFails(t *testing.T) {
-	path := t.TempDir()
-	lock, err := TryLockDir(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer lock.Unlock()
-	directory, err := OpenDirectoryForSync(path)
-	if err == nil {
-		_ = directory.Close()
-	}
-	if !errors.Is(err, windows.ERROR_SHARING_VIOLATION) {
-		t.Fatalf("OpenDirectoryForSync under a DirLock = %v, want ERROR_SHARING_VIOLATION", err)
-	}
-}
-
 func TestSyncResultFallbackIsCountedAndNarrow(t *testing.T) {
 	before := SkippedDirectorySyncs()
 	for _, code := range []error{windows.ERROR_ACCESS_DENIED, windows.ERROR_INVALID_FUNCTION} {
@@ -100,44 +81,5 @@ func TestSyncResultFallbackIsCountedAndNarrow(t *testing.T) {
 	}
 	if outcome, err := syncResult(nil); err != nil || outcome != SyncFlushed {
 		t.Fatalf("syncResult(nil) = %d, %v", outcome, err)
-	}
-}
-
-// A DirLock refuses every other write open of its directory, so a sync in the
-// holding process must go through the lock's handle.
-func TestSyncThroughOwnDirLock(t *testing.T) {
-	dir, path := openTempDir(t)
-	lock, err := TryLockDir(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer lock.Unlock()
-	outcome, err := SyncDirectory(path)
-	if err != nil || outcome != SyncFlushed {
-		t.Fatalf("SyncDirectory under own lock = %d, %v; want SyncFlushed", outcome, err)
-	}
-	outcome, err = dir.Sync()
-	if err != nil || outcome != SyncFlushed {
-		t.Fatalf("Dir.Sync under own lock = %d, %v; want SyncFlushed", outcome, err)
-	}
-}
-
-// Documented weaker behaviour of option 4a: while another process holds the
-// directory lock, this process cannot flush the directory.
-func TestSyncUnderForeignDirLockFails(t *testing.T) {
-	path := t.TempDir()
-	helper := startHelper(t, "dir", path)
-	_, err := SyncDirectory(path)
-	if !errors.Is(err, windows.ERROR_SHARING_VIOLATION) {
-		t.Fatalf("SyncDirectory under a foreign lock = %v, want ERROR_SHARING_VIOLATION", err)
-	}
-	if err := helper.exit(); err != nil {
-		t.Fatalf("helper exit: %v", err)
-	}
-	if _, err := eventually(5*time.Second, func() error {
-		_, err := SyncDirectory(path)
-		return err
-	}); err != nil {
-		t.Fatalf("SyncDirectory after the holder exited: %v", err)
 	}
 }

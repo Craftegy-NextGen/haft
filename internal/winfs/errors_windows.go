@@ -8,7 +8,8 @@ import (
 
 var (
 	// ErrBusy reports a lock held through another handle: ERROR_LOCK_VIOLATION
-	// for a file lock, ERROR_SHARING_VIOLATION for a directory lock.
+	// for a file lock, WAIT_TIMEOUT or the in-process registry for an
+	// IdentityLock.
 	ErrBusy = errors.New("winfs: busy: held through another handle")
 
 	// ErrLockConversion reports a lock request of the other mode on a handle

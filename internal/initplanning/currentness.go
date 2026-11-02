@@ -848,7 +848,7 @@ func classifyManifestOwnedPath(
 		base.kind = PathMissingOwned
 		return base
 	}
-	modeChanged := uint32(observation.mode.Perm()) != manifest.Mode
+	modeChanged := observedModeDiffersFromManifest(observation, manifest)
 	if observation.digest != manifest.Digest || modeChanged {
 		base.kind = PathLocallyModifiedOwned
 		return base

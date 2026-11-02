@@ -33,6 +33,24 @@ func absFor(unixPath string, separator rune, volume string) string {
 	return volume + string(converted)
 }
 
+// Exe returns the path of a fixture executable for the running OS. Where the
+// path separator is "/" (Linux, macOS) the path is returned unchanged. On
+// Windows ".exe" is appended, because Windows decides that a file is
+// executable by its extension (PATHEXT), not by a permission bit. Use it for
+// fixture binaries whose path is checked but which are never run.
+func Exe(path string) string {
+	return exeFor(path, filepath.Separator)
+}
+
+// exeFor is Exe with the separator supplied, so both branches can be tested
+// on every OS.
+func exeFor(path string, separator rune) string {
+	if separator == '/' {
+		return path
+	}
+	return path + ".exe"
+}
+
 // SetHome points the user home directory at dir for the rest of the test. It
 // sets HOME, which os.UserHomeDir reads on Linux and macOS, and USERPROFILE,
 // which it reads on Windows.

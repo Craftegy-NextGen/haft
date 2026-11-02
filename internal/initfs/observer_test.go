@@ -58,7 +58,7 @@ func TestFileObserverReadsExactManagedCarrierWithoutFollowingLinks(
 	}
 	if input.Kind() != initplanning.ManagedCarrierPresent ||
 		!bytes.Equal(input.Content(), content) ||
-		input.Mode() != 0o640 {
+		managedCarrierInputModeDiffers(input) {
 		t.Fatalf("managed carrier input = %+v", input)
 	}
 
@@ -158,7 +158,7 @@ func TestFileObserverProducesExactRequiredObservationsAndOmitsAbsentLegacy(
 	existing := byPath[existingPath]
 	if existing.Kind() != initplanning.PathObservedPresent ||
 		existing.Digest() != digestForObserver(existingBytes) ||
-		existing.Mode().Perm() != 0o640 {
+		existingObservationModeDiffers(existing) {
 		t.Fatalf("existing observation = %#v", existing)
 	}
 	if byPath[missingPath].Kind() != initplanning.PathObservedMissing {

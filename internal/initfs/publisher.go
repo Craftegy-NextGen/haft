@@ -1118,7 +1118,7 @@ func (publisher HostPublisher) stageOutput(
 		if err != nil {
 			return stagedCarrier{}, err
 		}
-		if digest != output.Digest() || mode.Perm() != output.Mode().Perm() {
+		if digest != output.Digest() || publicationStageModeDiffers(mode, output) {
 			return stagedCarrier{}, fmt.Errorf("publication stage exists with different bytes or mode")
 		}
 		return stagedCarrier{
@@ -1155,7 +1155,7 @@ func (publisher HostPublisher) stageOutput(
 	if err != nil {
 		return stagedCarrier{}, err
 	}
-	if digest != output.Digest() || mode.Perm() != output.Mode().Perm() {
+	if digest != output.Digest() || publicationStageModeDiffers(mode, output) {
 		return stagedCarrier{}, fmt.Errorf("publication stage failed exact reread")
 	}
 	return stagedCarrier{
@@ -1312,7 +1312,7 @@ func cleanupStagedCarrier(stage stagedCarrier) error {
 		return pathEffectError{path: stage.path, cause: err}
 	}
 	if digest != stage.output.Digest() ||
-		mode.Perm() != stage.output.Mode().Perm() {
+		publicationStageModeDiffers(mode, stage.output) {
 		return pathEffectError{
 			path:  stage.path,
 			cause: fmt.Errorf("publication stage changed; preserve it"),
@@ -1409,7 +1409,7 @@ func stepTerminalMatches(
 	}
 	return observation.Kind() == initplanning.PathObservedPresent &&
 		observation.Digest() == output.Digest() &&
-		observation.Mode() == output.Mode().Perm()
+		publishedModeMatches(observation, output)
 }
 
 func receiptForStep(
