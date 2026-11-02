@@ -617,14 +617,3 @@ func reconcileCanonicalCarrierStages(store ManifestStore) error {
 	}
 	return syncDirectory(parent)
 }
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open manifest directory for sync: %w", err)
-	}
-	defer directory.Close()
-	// On Windows, directory sync may fail with "Access is denied" - ignore
-	_ = directory.Sync()
-	return nil
-}

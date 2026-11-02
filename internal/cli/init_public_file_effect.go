@@ -255,25 +255,6 @@ func writePublicExactFile(effect publicExactFileEffect) error {
 	return nil
 }
 
-func syncPublicExactFileDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open public exact file directory %s: %w", path, err)
-	}
-	syncErr := directory.Sync()
-	closeErr := directory.Close()
-	if syncErr != nil {
-		// On Windows, directory sync may fail with "Access is denied"
-		// This is not fatal - file-level sync provides sufficient durability
-		_ = closeErr
-		return nil // Best effort on Windows
-	}
-	if closeErr != nil {
-		return fmt.Errorf("close public exact file directory %s: %w", path, closeErr)
-	}
-	return nil
-}
-
 func applyPublicExactFileEffects(
 	ctx context.Context,
 	effects []publicExactFileEffect,

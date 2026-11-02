@@ -373,17 +373,13 @@ func writeEvidenceCarrier(haftDir, artifactRef string, item EvidenceItem) (evide
 	if err := os.Rename(tempPath, projection.Path); err != nil {
 		return projection, fmt.Errorf("publish evidence carrier %s: %w", projection.Path, err)
 	}
-	directory, err := os.Open(dir)
+	directory, err := openDirectoryForSync(dir)
 	if err != nil {
 		return projection, fmt.Errorf("open evidence carrier directory for sync: %w", err)
 	}
 	if err := directory.Sync(); err != nil {
 		_ = directory.Close()
-		// On Windows, directory sync may fail with "Access is denied"
-		// This is not fatal - the file-level sync provides sufficient durability
-		// Log warning and continue
-		_ = directory.Close()
-		return projection, nil  // Best effort - continue without failing on Windows
+		return projection, fmt.Errorf("sync evidence carrier directory: %w", err)
 	}
 	if err := directory.Close(); err != nil {
 		return projection, fmt.Errorf("close evidence carrier directory: %w", err)

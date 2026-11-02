@@ -8,7 +8,7 @@
 //   - G3, G4: exclusive create and install without replace;
 //   - G5: LockFileEx file locks and share-mode directory locks ([DirLock]);
 //   - G6: private files (explicit owner plus protected owner-only DACL);
-//   - G7: directory durability ([SyncDirectory]).
+//   - G7: directory durability ([SyncDirectory], [OpenDirectoryForSync]).
 //
 // Every implementation file is Windows-only (the _windows file-name suffix is
 // its build constraint), so on Linux and macOS the package is empty apart from

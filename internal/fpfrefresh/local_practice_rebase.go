@@ -328,14 +328,15 @@ func replaceLocalPracticeCandidate(path string, payload []byte) error {
 		return fmt.Errorf("replace Local-Practice candidate: %w", err)
 	}
 	keepTemporary = false
-	directory, err := os.Open(filepath.Dir(cleanPath))
+	directory, err := openDirectoryForSync(filepath.Dir(cleanPath))
 	if err != nil {
 		return fmt.Errorf("open Local-Practice directory for fsync: %w", err)
 	}
 	syncErr := directory.Sync()
 	closeErr := directory.Close()
-	// On Windows, directory sync may fail - ignore (best effort)
-	_ = syncErr
+	if syncErr != nil {
+		return fmt.Errorf("fsync Local-Practice directory: %w", syncErr)
+	}
 	if closeErr != nil {
 		return fmt.Errorf("close Local-Practice directory: %w", closeErr)
 	}

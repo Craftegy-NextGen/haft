@@ -1748,14 +1748,3 @@ func removeSQLiteBuildFiles(path string) {
 	_ = os.Remove(path + "-wal")
 	_ = os.Remove(path + "-shm")
 }
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open source query index directory: %w", err)
-	}
-	defer func() { _ = directory.Close() }()
-	// On Windows, directory sync often fails with "Access is denied" - ignore
-	_ = directory.Sync()
-	return nil
-}

@@ -153,21 +153,6 @@ func syncSnapshotFile(path string) error {
 	return nil
 }
 
-func syncSnapshotDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open serve migration snapshot directory: %w", err)
-	}
-	syncErr := directory.Sync()
-	closeErr := directory.Close()
-	// On Windows, directory sync may fail - ignore (best effort)
-	_ = syncErr
-	if closeErr != nil {
-		return fmt.Errorf("close serve migration snapshot directory: %w", closeErr)
-	}
-	return nil
-}
-
 func verifyServeMigrationSnapshot(
 	ctx context.Context,
 	path string,

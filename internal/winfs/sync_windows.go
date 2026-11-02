@@ -59,6 +59,37 @@ func SyncDirectory(path string) (SyncOutcome, error) {
 	return outcome, nil
 }
 
+// OpenDirectoryForSync opens the absolute directory path so that Sync on the
+// returned file flushes it (FlushFileBuffers, probe P-c). It is the Windows
+// counterpart of os.Open for shared code that opens a directory, calls Sync
+// and closes it: os.Open returns a read-only handle, whose flush fails with
+// ERROR_ACCESS_DENIED. The handle has FILE_WRITE_DATA access,
+// FILE_FLAG_BACKUP_SEMANTICS and the share mode of every winfs handle (read,
+// write, delete); like os.Open it follows a reparse point at path.
+//
+// Unlike SyncDirectory there is no SyncSkipped fallback: every open and flush
+// error reaches the caller, as on Unix. A DirLock held on the directory, in
+// this or another process, refuses the write open with
+// ERROR_SHARING_VIOLATION; use SyncDirectory for a directory that may be
+// locked.
+func OpenDirectoryForSync(path string) (*os.File, error) {
+	if err := requireAbsolute(path); err != nil {
+		return nil, &os.PathError{Op: "open", Path: path, Err: err}
+	}
+	handle, err := createFile(
+		path,
+		windows.FILE_WRITE_DATA|windows.SYNCHRONIZE,
+		shareAll,
+		windows.OPEN_EXISTING,
+		windows.FILE_FLAG_BACKUP_SEMANTICS,
+		nil,
+	)
+	if err != nil {
+		return nil, &os.PathError{Op: "open", Path: path, Err: err}
+	}
+	return os.NewFile(uintptr(handle), path), nil
+}
+
 // Sync is fsync on the held directory. It reopens the directory through its
 // own handle (no name lookup) with write access, then behaves as
 // SyncDirectory.

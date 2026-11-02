@@ -3,6 +3,7 @@ package winfs
 import (
 	"errors"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -27,6 +28,56 @@ func TestSyncDirectoryMissing(t *testing.T) {
 	_, err := SyncDirectory(filepath.Join(t.TempDir(), "missing"))
 	if !errors.Is(err, fs.ErrNotExist) {
 		t.Fatalf("SyncDirectory(missing) = %v, want fs.ErrNotExist", err)
+	}
+}
+
+// OpenDirectoryForSync gives shared code a directory file whose Sync flushes,
+// where the read-only handle of os.Open fails (probe P-c, the R2 failure).
+func TestOpenDirectoryForSyncFlushes(t *testing.T) {
+	dir, path := openTempDir(t)
+	writeFile(t, dir, "entry", "x")
+	directory, err := OpenDirectoryForSync(path)
+	if err != nil {
+		t.Fatalf("OpenDirectoryForSync: %v", err)
+	}
+	if directory.Name() != path {
+		t.Fatalf("Name() = %q, want %q", directory.Name(), path)
+	}
+	if err := directory.Sync(); err != nil {
+		t.Fatalf("Sync on OpenDirectoryForSync = %v, want nil", err)
+	}
+	if err := directory.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+}
+
+func TestOpenDirectoryForSyncErrors(t *testing.T) {
+	var pathErr *os.PathError
+	_, err := OpenDirectoryForSync(filepath.Join("relative", "dir"))
+	if !errors.Is(err, ErrRelativePath) || !errors.As(err, &pathErr) || pathErr.Op != "open" {
+		t.Fatalf("OpenDirectoryForSync(relative) = %v, want *os.PathError open wrapping ErrRelativePath", err)
+	}
+	_, err = OpenDirectoryForSync(filepath.Join(t.TempDir(), "missing"))
+	if !errors.Is(err, fs.ErrNotExist) || !errors.As(err, &pathErr) {
+		t.Fatalf("OpenDirectoryForSync(missing) = %v, want *os.PathError wrapping fs.ErrNotExist", err)
+	}
+}
+
+// No fallback is hidden here: a directory under a DirLock cannot be opened
+// for write, in the holding process too, and the error is returned.
+func TestOpenDirectoryForSyncUnderDirLockFails(t *testing.T) {
+	path := t.TempDir()
+	lock, err := TryLockDir(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer lock.Unlock()
+	directory, err := OpenDirectoryForSync(path)
+	if err == nil {
+		_ = directory.Close()
+	}
+	if !errors.Is(err, windows.ERROR_SHARING_VIOLATION) {
+		t.Fatalf("OpenDirectoryForSync under a DirLock = %v, want ERROR_SHARING_VIOLATION", err)
 	}
 }
 
