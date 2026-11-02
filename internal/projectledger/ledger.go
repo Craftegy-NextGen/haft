@@ -1181,8 +1181,6 @@ func loadIdentityAnchored(root string) (Identity, []topologyAnchor, error) {
 	return Identity{root: projectRoot, id: projectID}, anchors, nil
 }
 
-// anchorOpenedFile converts a raw file descriptor to a topology anchor.
-// This function is OS-agnostic - it just wraps the fd.
 func anchorOpenedFile(fd int, path string, name string, directory bool) (topologyAnchor, error) {
 	file := os.NewFile(uintptr(fd), path) // #nosec G115 -- unix.Open or unix.Openat returned a valid nonnegative descriptor.
 	info, err := file.Stat()

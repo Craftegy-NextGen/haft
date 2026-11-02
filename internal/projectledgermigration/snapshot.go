@@ -138,7 +138,7 @@ func requireSnapshotPathAbsent(path string) error {
 }
 
 func syncSnapshotFile(path string) error {
-	file, err := os.Open(path)
+	file, err := openFileForSync(path)
 	if err != nil {
 		return fmt.Errorf("open serve migration snapshot for sync: %w", err)
 	}

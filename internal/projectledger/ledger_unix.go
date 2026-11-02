@@ -23,7 +23,7 @@ func openChildDirectoryAnchor(
 	path string,
 	name string,
 ) (topologyAnchor, error) {
-	fd, err := unix.Openat(int(parent.file.Fd()), entry, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
+	fd, err := unix.Openat(int(parent.file.Fd()), entry, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0) // #nosec G115 -- parent is an open topology anchor.
 	if err != nil {
 		return topologyAnchor{}, fmt.Errorf("open anchored no-follow %s: %w", name, err)
 	}
@@ -36,7 +36,7 @@ func openChildRegularFileAnchor(
 	path string,
 	name string,
 ) (topologyAnchor, error) {
-	fd, err := unix.Openat(int(parent.file.Fd()), entry, unix.O_RDONLY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
+	fd, err := unix.Openat(int(parent.file.Fd()), entry, unix.O_RDONLY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0) // #nosec G115 -- parent is an open topology anchor.
 	if err != nil {
 		if errors.Is(err, unix.ELOOP) {
 			return topologyAnchor{}, fmt.Errorf("anchored %s must be a real regular file, not a symlink", name)

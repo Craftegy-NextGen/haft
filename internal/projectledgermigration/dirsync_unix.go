@@ -22,3 +22,9 @@ func syncSnapshotDirectory(path string) error {
 	}
 	return nil
 }
+
+// openFileForSync opens a snapshot file whose Sync is fsync on it. Outside
+// Windows it is exactly os.Open.
+func openFileForSync(path string) (*os.File, error) {
+	return os.Open(path)
+}
