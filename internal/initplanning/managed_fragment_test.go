@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/fs"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -14,7 +15,7 @@ const managedFragmentMergeEdition = "semantic-merge-v1"
 func TestManagedJSONObjectEntryFirstInstallPreservesUnrelatedValues(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	desired := mustJSONObjectEntryFragment(
 		t,
 		carrierPath,
@@ -101,7 +102,7 @@ func TestManagedJSONObjectEntryFirstInstallPreservesUnrelatedValues(
 func TestManagedFragmentMatchingBytesWithoutReceiptRemainForeign(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	desired := mustJSONObjectEntryFragment(
 		t,
 		carrierPath,
@@ -197,7 +198,7 @@ env = { HAFT_PROJECT_ROOT = "." }
 func TestManagedFragmentManifestScopesCurrentnessToFragment(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	desired := mustJSONObjectEntryFragment(
 		t,
 		carrierPath,
@@ -250,7 +251,7 @@ func TestManagedFragmentManifestScopesCurrentnessToFragment(
 func TestManagedFragmentLocallyModifiedOwnedBlocksReplacement(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	installed := mustJSONObjectEntryFragment(
 		t,
 		carrierPath,
@@ -294,7 +295,7 @@ func TestManagedFragmentLocallyModifiedOwnedBlocksReplacement(
 func TestManagedTOMLTableFamilyUpdatePreservesOtherSectionsByteExact(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/config.toml"
+	carrierPath := filepath.Join(t.TempDir(), "config.toml")
 	installed := mustTOMLTableFamilyFragment(
 		t,
 		carrierPath,
@@ -369,7 +370,7 @@ command = "context7"
 func TestManagedTOMLTableSetMigratesFamilyAndPreservesDescendants(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/config.toml"
+	carrierPath := filepath.Join(t.TempDir(), "config.toml")
 	installed := mustTOMLTableFamilyFragment(
 		t,
 		carrierPath,
@@ -507,7 +508,7 @@ HAFT_PROJECT_ROOT = "."
 func TestManagedJSONArrayMemberReplacesExactOwnedMemberOnly(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	installed := mustJSONArrayMemberFragment(
 		t,
 		carrierPath,
@@ -566,7 +567,7 @@ func TestManagedJSONArrayMemberReplacesExactOwnedMemberOnly(
 func TestManagedJSONArrayMemberRecognizesSeveralExactLegacyDigests(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	oldLegacy := mustJSONArrayMemberFragment(
 		t,
 		carrierPath,
@@ -663,7 +664,7 @@ func TestManagedJSONArrayMemberRecognizesSeveralExactLegacyDigests(
 func TestManagedJSONArraySourceMemberPreservesUserOwnedObjectFields(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	newSource, err := NewJSONArrayMemberFragment(
 		carrierPath,
 		ComponentPackage,
@@ -797,7 +798,7 @@ func TestManagedJSONArraySourceMemberPreservesUserOwnedObjectFields(
 func TestManagedJSONArraySourceMemberRejectsAmbiguousIdentity(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	newSource, err := NewJSONArrayMemberFragment(
 		carrierPath,
 		ComponentPackage,
@@ -857,7 +858,7 @@ func TestManagedJSONArraySourceMemberRejectsAmbiguousIdentity(
 func TestManagedFragmentExactLegacyCanBeAdoptedWithoutCarrierRewrite(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	desired := mustJSONObjectEntryFragment(
 		t,
 		carrierPath,
@@ -899,7 +900,7 @@ func TestManagedFragmentExactLegacyCanBeAdoptedWithoutCarrierRewrite(
 func TestManagedFragmentObservationFailsClosedOnAmbiguousCarrier(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	desired := mustJSONObjectEntryFragment(
 		t,
 		carrierPath,
@@ -924,7 +925,7 @@ func TestManagedFragmentObservationFailsClosedOnAmbiguousCarrier(
 		t.Fatalf("duplicate JSON observation error = %v", err)
 	}
 
-	tomlPath := t.TempDir() + "/config.toml"
+	tomlPath := filepath.Join(t.TempDir(), "config.toml")
 	toml := mustTOMLTableFamilyFragment(
 		t,
 		tomlPath,
@@ -953,7 +954,7 @@ func TestManagedFragmentObservationFailsClosedOnAmbiguousCarrier(
 func TestManagedYAMLFragmentsFirstInstallPreservesUnrelatedCarrierBytes(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/config.yaml"
+	carrierPath := filepath.Join(t.TempDir(), "config.yaml")
 	server := mustYAMLMappingEntryFragment(
 		t,
 		carrierPath,
@@ -1053,7 +1054,7 @@ telemetry:
 func TestManagedYAMLFragmentsFirstInstallPreservesCommentOnlyCarrier(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/config.yaml"
+	carrierPath := filepath.Join(t.TempDir(), "config.yaml")
 	server := mustYAMLMappingEntryFragment(
 		t,
 		carrierPath,
@@ -1104,7 +1105,7 @@ func TestManagedYAMLFragmentsFirstInstallPreservesCommentOnlyCarrier(
 func TestManagedYAMLCommentInsideOwnedFragmentIsLocalModification(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/config.yaml"
+	carrierPath := filepath.Join(t.TempDir(), "config.yaml")
 	server := mustYAMLMappingEntryFragment(
 		t,
 		carrierPath,
@@ -1156,7 +1157,7 @@ func TestManagedYAMLCommentInsideOwnedFragmentIsLocalModification(
 func TestManagedYAMLFragmentsReplaceOnlyExactOwnedCoordinates(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/config.yaml"
+	carrierPath := filepath.Join(t.TempDir(), "config.yaml")
 	installedServer := mustYAMLMappingEntryFragment(
 		t,
 		carrierPath,
@@ -1254,7 +1255,7 @@ telemetry: false
 func TestManagedYAMLMatchingValuesWithoutReceiptRemainForeign(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/config.yaml"
+	carrierPath := filepath.Join(t.TempDir(), "config.yaml")
 	server := mustYAMLMappingEntryFragment(
 		t,
 		carrierPath,
@@ -1314,7 +1315,7 @@ mcp_servers:
 func TestManagedYAMLObservationFailsClosedOnAmbiguousSyntax(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/config.yaml"
+	carrierPath := filepath.Join(t.TempDir(), "config.yaml")
 	server := mustYAMLMappingEntryFragment(
 		t,
 		carrierPath,

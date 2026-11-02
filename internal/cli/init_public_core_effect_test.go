@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"path/filepath"
@@ -25,7 +26,7 @@ func TestPublicProjectCoreEffectConsumesOnlyUneditedGeneratedProfileReview(
 ) {
 	homeRoot := mustResolvedTempDir(t)
 	projectRoot := mustResolvedTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	writePublicBootstrapFixture(t, projectRoot, "go.mod", "module example.test/app\n")
 	writePublicBootstrapFixture(t, projectRoot, "internal/kernel.go", "package internal\n")
 	if err := os.MkdirAll(filepath.Join(projectRoot, ".haft"), 0o755); err != nil {
@@ -62,7 +63,7 @@ func TestPublicProfileBootstrapRequiresReviewForEnrichedGeneratedCarrier(
 ) {
 	homeRoot := mustResolvedTempDir(t)
 	projectRoot := mustResolvedTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	writePublicBootstrapFixture(t, projectRoot, "go.mod", "module example.test/app\n")
 	writePublicBootstrapFixture(t, projectRoot, "internal/kernel.go", "package internal\n")
 	if err := os.MkdirAll(filepath.Join(projectRoot, ".haft"), 0o755); err != nil {
@@ -113,7 +114,7 @@ func TestPublicProjectCoreEffectAutomaticallyBootstrapsSoftwareProfile(
 ) {
 	homeRoot := mustResolvedTempDir(t)
 	projectRoot := mustResolvedTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	writePublicBootstrapFixture(t, projectRoot, "go.mod", "module example.test/app\n")
 	writePublicBootstrapFixture(
 		t,
@@ -236,7 +237,7 @@ func TestPublicProjectCoreEffectAutomaticallyBootstrapsDocumentsProfile(
 ) {
 	homeRoot := mustResolvedTempDir(t)
 	projectRoot := mustResolvedTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	writePublicBootstrapFixture(t, projectRoot, "notes/one.md", "# One\n")
 	writePublicBootstrapFixture(t, projectRoot, "proposal.mdx", "# Two\n")
 	writePublicBootstrapFixture(t, projectRoot, "papers/three.rst", "Three\n")
@@ -278,7 +279,7 @@ func TestPublicProjectCoreEffectBootstrapsLargeSoftwareRepository(
 ) {
 	homeRoot := mustResolvedTempDir(t)
 	projectRoot := mustResolvedTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	writePublicBootstrapFixture(
 		t,
 		projectRoot,
@@ -342,7 +343,7 @@ func TestPublicProjectCoreEffectRejectsProfileDetectorTOCTOUBeforeWrites(
 ) {
 	homeRoot := mustResolvedTempDir(t)
 	projectRoot := mustResolvedTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	writePublicBootstrapFixture(t, projectRoot, "go.mod", "module example.test/app\n")
 	writePublicBootstrapFixture(t, projectRoot, "internal/kernel.go", "package internal\n")
 	request := mustPublicCoreOnlyRequest(t, projectRoot, "qnt_8e4d2b6c")
@@ -426,7 +427,7 @@ func TestPublicProjectCoreEffectInitializesExactPlannedIdentity(
 	if err := os.MkdirAll(projectRoot, 0o755); err != nil {
 		t.Fatalf("create project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,
@@ -493,7 +494,7 @@ func TestPublicProjectCoreEffectMigratesExactLegacyQuintDatabaseSeed(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	legacyPath := filepath.Join(
 		projectRoot,
 		".quint",
@@ -648,7 +649,7 @@ func TestPublicProjectCoreEffectRejectsChangedLegacyCarrierBeforeWrites(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	legacyRoot := filepath.Join(projectRoot, ".quint")
 	legacyPath := filepath.Join(legacyRoot, "quint.db")
 	workflowPath := filepath.Join(legacyRoot, "workflow.md")
@@ -730,7 +731,7 @@ func TestPublicProjectCoreEffectRejectsChangedLegacySeedBeforeWrites(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	legacyPath := filepath.Join(
 		projectRoot,
 		".quint",
@@ -807,7 +808,7 @@ func TestPublicProjectCoreEffectPreservesExistingCoreCarriers(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	haftDir := filepath.Join(projectRoot, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {
 		t.Fatalf("create Haft root: %v", err)
@@ -881,7 +882,7 @@ func TestPublicProjectCoreEffectRemovesExactGeneratedLegacyConfig(
 ) {
 	homeRoot := mustResolvedTempDir(t)
 	projectRoot := mustResolvedTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	haftDir := filepath.Join(projectRoot, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -928,7 +929,7 @@ func TestPublicProjectCoreEffectRejectsChangedCoreCarrierBeforeWrites(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	haftDir := filepath.Join(projectRoot, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {
 		t.Fatalf("create Haft root: %v", err)

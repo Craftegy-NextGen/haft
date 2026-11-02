@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -100,7 +101,7 @@ func stageClosureForResolutionTest(
 	content, _ := prepared.Content()
 	root, _ := content.ProjectRoot()
 	boundAt := formatTime(time.Date(2026, 7, 15, 10, 0, 0, 0, time.UTC))
-	bindingJSON := `{"schema":"haft.project-ledger-binding/v1","project_id":"qnt_a7f3b2c1","project_root":"` + root.String() + `","bound_at":"` + boundAt + `"}`
+	bindingJSON := `{"schema":"haft.project-ledger-binding/v1","project_id":"qnt_a7f3b2c1","project_root":` + testpath.JSONString(root.String()) + `,"bound_at":"` + boundAt + `"}`
 	mustExec(t, database, `INSERT INTO project_ledger_binding (
 		binding_slot, project_id, project_root, binding_digest, binding_json, bound_at
 	) VALUES (1, 'qnt_a7f3b2c1', ?, ?, ?, ?)`,

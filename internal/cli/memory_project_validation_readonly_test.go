@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -185,7 +186,7 @@ func newReadOnlyProjectValidationFixture(
 	t.Helper()
 	home := canonicalReadOnlyProjectValidationDirectory(t, t.TempDir())
 	root := canonicalReadOnlyProjectValidationDirectory(t, t.TempDir())
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	haftDirectory := filepath.Join(root, ".haft")
 	if err := os.MkdirAll(haftDirectory, 0o755); err != nil {
 		t.Fatal(err)

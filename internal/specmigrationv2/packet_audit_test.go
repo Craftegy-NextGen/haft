@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestAuditPacketCandidateVerifiesExactEightSectionPartition(t *testing.T) {
@@ -451,7 +453,7 @@ func auditSplitBranches(
 
 func auditProjectRoot(t *testing.T) ProjectRootRef {
 	t.Helper()
-	value, err := NewProjectRootRef("/tmp/haft-packet-partition-audit")
+	value, err := NewProjectRootRef(testpath.Abs("/tmp/haft-packet-partition-audit"))
 	if err != nil {
 		t.Fatalf("NewProjectRootRef: %v", err)
 	}

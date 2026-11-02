@@ -2,6 +2,7 @@ package initplanning
 
 import (
 	"bytes"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -11,7 +12,7 @@ const managedTextFragmentMergeEdition = "html-comment-section-merge-v1"
 func TestManagedHTMLCommentSectionFirstInstallPreservesOutsideBytes(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/CLAUDE.md"
+	carrierPath := filepath.Join(t.TempDir(), "CLAUDE.md")
 	desired := mustHTMLCommentSectionFragment(
 		t,
 		carrierPath,
@@ -93,7 +94,7 @@ func TestManagedHTMLCommentSectionFirstInstallPreservesOutsideBytes(
 func TestManagedHTMLCommentSectionReplacesOwnedSectionOnly(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/CLAUDE.md"
+	carrierPath := filepath.Join(t.TempDir(), "CLAUDE.md")
 	installed := mustHTMLCommentSectionFragment(
 		t,
 		carrierPath,
@@ -155,7 +156,7 @@ func TestManagedHTMLCommentSectionReplacesOwnedSectionOnly(
 func TestManagedHTMLCommentSectionLocalEditIsReplacedInsideMarkersOnly(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/CLAUDE.md"
+	carrierPath := filepath.Join(t.TempDir(), "CLAUDE.md")
 	installed := mustHTMLCommentSectionFragment(
 		t,
 		carrierPath,
@@ -229,7 +230,7 @@ func TestManagedHTMLCommentSectionLocalEditIsReplacedInsideMarkersOnly(
 func TestManagedHTMLCommentSectionRetentionUsesExactObservedSnapshot(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/AGENTS.md"
+	carrierPath := filepath.Join(t.TempDir(), "AGENTS.md")
 	installed := mustHTMLCommentSectionFragment(
 		t,
 		carrierPath,
@@ -325,7 +326,7 @@ func TestManagedHTMLCommentSectionRetentionUsesExactObservedSnapshot(
 func TestManagedHTMLCommentSectionPreManifestVersionIsReplaced(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/AGENTS.md"
+	carrierPath := filepath.Join(t.TempDir(), "AGENTS.md")
 	installed := mustHTMLCommentSectionFragment(
 		t,
 		carrierPath,
@@ -377,7 +378,7 @@ func TestManagedHTMLCommentSectionPreManifestVersionIsReplaced(
 func TestManagedHTMLCommentSectionExactPreManifestVersionIsCurrent(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/CLAUDE.md"
+	carrierPath := filepath.Join(t.TempDir(), "CLAUDE.md")
 	desired := mustHTMLCommentSectionFragment(
 		t,
 		carrierPath,
@@ -423,7 +424,7 @@ func TestManagedHTMLCommentSectionExactPreManifestVersionIsCurrent(
 func TestManagedHTMLCommentSectionFailsClosedOnMalformedMarkers(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/CLAUDE.md"
+	carrierPath := filepath.Join(t.TempDir(), "CLAUDE.md")
 	desired := mustHTMLCommentSectionFragment(
 		t,
 		carrierPath,

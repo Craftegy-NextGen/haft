@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"slices"
@@ -19,7 +20,7 @@ func TestCurrentCodexProjectionRunsThroughExactPreviewAndIdempotentApply(
 	projectRoot := filepath.Join(t.TempDir(), "downstream")
 	userHomeRoot := t.TempDir()
 	projectID := "qnt_e3149c17"
-	t.Setenv("HOME", userHomeRoot)
+	testpath.SetHome(t, userHomeRoot)
 	if err := os.MkdirAll(projectRoot, 0o755); err != nil {
 		t.Fatalf("create downstream root: %v", err)
 	}

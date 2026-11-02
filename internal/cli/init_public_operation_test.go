@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"path/filepath"
@@ -30,7 +31,7 @@ func TestTypedPublicCodexOperationInitializesFullCodexIntegration(
 	if err := os.MkdirAll(projectRoot, 0o755); err != nil {
 		t.Fatalf("create project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,
@@ -185,7 +186,7 @@ func TestTypedPublicClaudeCodexLocalNoFileInstructionsRetainsManagedCarriers(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	runtime, err := currentHostPublicationRuntimeFromProcess()
 	if err != nil {
 		t.Fatalf("currentHostPublicationRuntimeFromProcess: %v", err)
@@ -417,7 +418,7 @@ func TestTypedPublicCodexOperationSharesUserSkillsAcrossProjects(
 	if err != nil {
 		t.Fatalf("resolve project parent: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	runtime, err := currentHostPublicationRuntimeFromProcess()
 	if err != nil {
 		t.Fatalf("currentHostPublicationRuntimeFromProcess: %v", err)
@@ -733,7 +734,7 @@ func TestTypedPublicOperationAppliesEveryExplicitHostFlag(
 			if err != nil {
 				t.Fatalf("resolve project root: %v", err)
 			}
-			t.Setenv("HOME", homeRoot)
+			testpath.SetHome(t, homeRoot)
 			request, err := compilePublicInitRequest(
 				weakPublicInitRequest{
 					invocation:  initplanning.InvocationExplicit,
@@ -808,7 +809,7 @@ func TestTypedPublicMultiHostFailureReturnsPendingBindingsAndRetries(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,
@@ -932,7 +933,7 @@ func TestTypedPublicHostFailureAfterCoreReturnsAllPending(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,
@@ -1025,7 +1026,7 @@ func TestTypedPublicCodexAndAgentsOperationCoalescesDuplicateSkillPublication(
 	if err := os.MkdirAll(projectRoot, 0o755); err != nil {
 		t.Fatalf("create project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,
@@ -1117,7 +1118,7 @@ func TestTypedPublicCorePreconditionFailureReturnsExactNoWriteReceipt(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,
@@ -1226,7 +1227,7 @@ func TestTypedPublicCoordinationCoversCoreAndAncillaryPublications(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,

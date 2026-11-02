@@ -23,6 +23,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/runtimemechanism"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type genesisReadSetFixture struct {
@@ -150,7 +152,7 @@ func readSetGenesisStage(
 		t.Fatalf("projecttypeenvassertionreport.NewReport(): %v", err)
 	}
 	profileRoot, err := projectprofile.NewProjectRootV1(
-		"/tmp/haft-genesis-readset-" + project.String(),
+		testpath.Abs("/tmp/haft-genesis-readset-") + project.String(),
 	)
 	if err != nil {
 		t.Fatalf("NewProjectRootV1(): %v", err)

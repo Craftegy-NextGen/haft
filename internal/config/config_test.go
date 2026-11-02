@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,7 +30,7 @@ embedding:
 		t.Fatalf("write config: %v", err)
 	}
 
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	cfg, err := Load()
 	if err != nil {
 		t.Fatalf("load config: %v", err)
@@ -46,7 +47,7 @@ embedding:
 }
 
 func TestLoadReturnsEmptyConfigWhenAbsent(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	testpath.SetHome(t, t.TempDir())
 
 	cfg, err := Load()
 	if err != nil {

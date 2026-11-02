@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"path/filepath"
@@ -315,7 +316,7 @@ func TestTypedPublicInitWithoutAdmissionCreatesNoProfileDependentCarriers(
 ) {
 	projectRoot := physicalInitTestTempDir(t)
 	home := physicalInitTestTempDir(t)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
 	restoreFlags := captureInitHostFlagState()

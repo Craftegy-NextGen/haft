@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -404,7 +405,7 @@ func newCLISpecMigrationV2FixtureWithProvenance(
 
 	projectID := profileHarness.ProjectID()
 	home := t.TempDir()
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	mustWriteCLISpecMigrationFile(
 		t,
 		filepath.Join(root, ".haft", "project.yaml"),

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"slices"
@@ -11,7 +12,7 @@ import (
 func TestFreshHostAndPiCarriersPreserveIndependentSourceFirstSemantics(t *testing.T) {
 	projectRoot := physicalInitTestTempDir(t)
 	homeRoot := physicalInitTestTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
 	restoreFlags := captureInitHostFlagState()

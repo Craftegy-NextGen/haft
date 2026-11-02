@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strings"
@@ -856,7 +857,7 @@ type projectLedgerFixture struct {
 func newProjectLedgerFixture(t *testing.T, id string) projectLedgerFixture {
 	t.Helper()
 	home := canonicalTempDirectory(t)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	root := canonicalTempDirectory(t)
 	writeProjectIdentity(t, root, id)
 	directory := filepath.Join(home, ".haft", "projects", id)

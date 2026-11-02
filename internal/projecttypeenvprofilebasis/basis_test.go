@@ -5,10 +5,12 @@ import (
 	"testing"
 
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestNoCanonicalProjectProfileIsDeterministicExactAbsence(t *testing.T) {
-	root := mustProjectRoot(t, "/tmp/haft-profile-basis")
+	root := mustProjectRoot(t, testpath.Abs("/tmp/haft-profile-basis"))
 	left, err := NewNoCanonicalProjectProfile(root)
 	if err != nil {
 		t.Fatalf("NewNoCanonicalProjectProfile(left): %v", err)
@@ -108,7 +110,7 @@ func declaredBasisInput(
 ) DeclaredProjectProfileBasisInput {
 	t.Helper()
 	return DeclaredProjectProfileBasisInput{
-		ProjectRoot:                       mustProjectRoot(t, "/tmp/haft-profile-basis"),
+		ProjectRoot:                       mustProjectRoot(t, testpath.Abs("/tmp/haft-profile-basis")),
 		LedgerRevision:                    projectprofile.NewLedgerRevision(revision),
 		Payload:                           payload,
 		AdmissionRecordRef:                mustAdmissionRef(t, "profile-admission:test"),

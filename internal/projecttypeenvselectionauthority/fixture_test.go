@@ -25,6 +25,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/runtimemechanism"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 var (
@@ -283,7 +285,7 @@ func buildStageAndRequest(
 		t.Fatalf("projecttypeenvassertionreport.NewReport: %v", err)
 	}
 	profileRoot, err := projectprofile.NewProjectRootV1(
-		"/tmp/haft-typeenv-head-selection-test",
+		testpath.Abs("/tmp/haft-typeenv-head-selection-test"),
 	)
 	if err != nil {
 		t.Fatalf("NewProjectRootV1: %v", err)
@@ -405,7 +407,7 @@ func defaultSpeechActSourceVariant(
 		methodDescriptionRef: "method-description:manual-typeenv-head-selection:v1",
 		procedureRef:         "procedure:review-and-authorize-typeenv-head-selection:v1",
 		executedWithin:       "system:haft-authority-test",
-		projectRoot:          "/tmp/haft-typeenv-head-selection-test",
+		projectRoot:          testpath.Abs("/tmp/haft-typeenv-head-selection-test"),
 		institutedObject:     permissionRef.String(),
 		speechActRef:         speechActRaw,
 		institutedKind:       "U.Commitment",

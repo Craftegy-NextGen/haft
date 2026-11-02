@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type foreignPreparedProfileAdmissionV1 struct {
@@ -144,7 +146,7 @@ func TestPreparedProfileAdmissionV1IsOpaquePreCommitMaterialOnly(t *testing.T) {
 	requestJSON := string(prepared.AdmissionRequestCanonicalJSON())
 	for _, binding := range []string{
 		`"schema":"haft.project-profile.declaration-admission-request/v1"`,
-		`"project_root":"/tmp/haft-project"`,
+		`"project_root":` + testpath.JSONString(testpath.Abs("/tmp/haft-project")),
 		`"candidate":`,
 		`"work_record":`,
 		`"method_description":`,
@@ -398,7 +400,7 @@ func TestTentativeTransactionFactsDoNotEnterAdmissionRequestDigest(t *testing.T)
 
 func TestProfileAdmissionPreparationRejectsSourceAndTransactionMismatches(t *testing.T) {
 	fixture := mustV1Fixture(t)
-	wrongRoot, err := projectprofile.NewProjectRootV1("/tmp/another-project")
+	wrongRoot, err := projectprofile.NewProjectRootV1(testpath.Abs("/tmp/another-project"))
 	if err != nil {
 		t.Fatalf("NewProjectRootV1: %v", err)
 	}

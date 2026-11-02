@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,7 +17,7 @@ func TestTypedPublicZedAcceptsJSONCAndPreservesForeignSemantics(
 	homeRoot := physicalInitTestTempDir(t)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	settingsPath := filepath.Join(
 		homeRoot,
@@ -110,7 +111,7 @@ func TestTypedPublicZedRejectsMalformedJSONCBeforeWrites(
 	homeRoot := physicalInitTestTempDir(t)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	settingsPath := filepath.Join(
 		homeRoot,

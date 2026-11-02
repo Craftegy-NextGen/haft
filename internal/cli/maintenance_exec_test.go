@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -51,7 +52,7 @@ func TestMaintenanceExecutePhase_GateModesAndUndo(t *testing.T) {
 	root := newGoldenE2ERepo(t)
 	restoreCwd := enterTestProjectRoot(t, root)
 	defer restoreCwd()
-	t.Setenv("HOME", filepath.Join(root, ".test-home"))
+	testpath.SetHome(t, filepath.Join(root, ".test-home"))
 
 	initLocal = true
 	runTypedCoreInitForTest(t)
@@ -171,7 +172,7 @@ func TestMaintenanceDrainDryRunReportsProposalsAndNeedsOperatorWithoutMutation(t
 	root := newGoldenE2ERepo(t)
 	restoreCwd := enterTestProjectRoot(t, root)
 	defer restoreCwd()
-	t.Setenv("HOME", filepath.Join(root, ".test-home"))
+	testpath.SetHome(t, filepath.Join(root, ".test-home"))
 
 	initLocal = true
 	runTypedCoreInitForTest(t)
@@ -350,7 +351,7 @@ func TestMaintenanceDrainClosesSafeItemsAndReportsNeedsOperator(t *testing.T) {
 	root := newGoldenE2ERepo(t)
 	restoreCwd := enterTestProjectRoot(t, root)
 	defer restoreCwd()
-	t.Setenv("HOME", filepath.Join(root, ".test-home"))
+	testpath.SetHome(t, filepath.Join(root, ".test-home"))
 
 	initLocal = true
 	runTypedCoreInitForTest(t)
@@ -413,7 +414,7 @@ func TestMaintenanceExecutePhaseDisabledConfigSkipsMutations(t *testing.T) {
 	root := newGoldenE2ERepo(t)
 	restoreCwd := enterTestProjectRoot(t, root)
 	defer restoreCwd()
-	t.Setenv("HOME", filepath.Join(root, ".test-home"))
+	testpath.SetHome(t, filepath.Join(root, ".test-home"))
 
 	initLocal = true
 	runTypedCoreInitForTest(t)
@@ -467,7 +468,7 @@ func TestMaintenanceExecutePhase_RevalidateStale(t *testing.T) {
 	root := newGoldenE2ERepo(t)
 	restoreCwd := enterTestProjectRoot(t, root)
 	defer restoreCwd()
-	t.Setenv("HOME", filepath.Join(root, ".test-home"))
+	testpath.SetHome(t, filepath.Join(root, ".test-home"))
 
 	initLocal = true
 	runTypedCoreInitForTest(t)
@@ -543,7 +544,7 @@ func TestMaintenanceExecutePhase_JudgmentStaleClaimBlocksRevalidation(t *testing
 	root := newGoldenE2ERepo(t)
 	restoreCwd := enterTestProjectRoot(t, root)
 	defer restoreCwd()
-	t.Setenv("HOME", filepath.Join(root, ".test-home"))
+	testpath.SetHome(t, filepath.Join(root, ".test-home"))
 
 	initLocal = true
 	runTypedCoreInitForTest(t)
@@ -619,7 +620,7 @@ func TestMaintenanceExecutePhase_CappedObservablesPreventRevalidation(t *testing
 	root := newGoldenE2ERepo(t)
 	restoreCwd := enterTestProjectRoot(t, root)
 	defer restoreCwd()
-	t.Setenv("HOME", filepath.Join(root, ".test-home"))
+	testpath.SetHome(t, filepath.Join(root, ".test-home"))
 
 	initLocal = true
 	runTypedCoreInitForTest(t)

@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -389,7 +390,7 @@ func newArtifactCLITestProject(t *testing.T) string {
 
 	root := t.TempDir()
 	home := filepath.Join(root, ".home")
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	if err := os.Chdir(root); err != nil {
 		t.Fatal(err)
 	}

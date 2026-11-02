@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
-const testProjectRoot = "/tmp/haft-project"
+var testProjectRoot = testpath.Abs("/tmp/haft-project")
 
 func TestPublicProfileApplicabilityFailsClosedWithoutSealedAdmission(t *testing.T) {
 	auto := projectprofile.ResolveSoftwareSystemSpecMigration(projectprofile.Auto{})

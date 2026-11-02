@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"slices"
@@ -262,7 +263,7 @@ func newBoundSpecQueryTestProject(t *testing.T) checkTestProject {
 	if err != nil {
 		t.Fatalf("resolve physical test home: %v", err)
 	}
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	root, err := filepath.EvalSymlinks(t.TempDir())
 	if err != nil {
 		t.Fatalf("resolve physical project root: %v", err)

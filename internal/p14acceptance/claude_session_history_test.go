@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"io/fs"
 	"os"
@@ -1582,7 +1583,7 @@ func TestP14ClaudeHistoryRootIgnoresCallerHomeAndPrefixIsAppendOnly(
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("HOME", t.TempDir())
+	testpath.SetHome(t, t.TempDir())
 	afterOverride, err := p14CanonicalClaudeProjectsRoot()
 	if err != nil {
 		t.Fatal(err)
