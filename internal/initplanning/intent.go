@@ -373,22 +373,6 @@ func parseCanonicalAbsolutePath(raw string) (string, error) {
 	return raw, nil
 }
 
-// parseCanonicalProjectRoot validates an init project root. It enforces the
-// same canonical/absolute requirements as parseCanonicalAbsolutePath but
-// tolerates a drive/filesystem root (e.g. "S:\" on Windows or "/" on POSIX),
-// which is a legitimate project root for workspaces checked out at a volume
-// root. All other callers must keep using parseCanonicalAbsolutePath, which
-// still rejects the filesystem root.
-func parseCanonicalProjectRoot(raw string) (string, error) {
-	if raw == "" || raw != strings.TrimSpace(raw) {
-		return "", fmt.Errorf("path is required in exact form")
-	}
-	if !filepath.IsAbs(raw) || filepath.Clean(raw) != raw {
-		return "", fmt.Errorf("path must be canonical and absolute")
-	}
-	return raw, nil
-}
-
 type DiscoveryObservation struct {
 	host    HostID
 	basis   string

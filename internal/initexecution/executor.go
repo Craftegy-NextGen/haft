@@ -126,17 +126,6 @@ func canonicalNonRootPath(path string) bool {
 	return path != volumeRoot
 }
 
-// canonicalProjectRootPath validates a project/store/coordinator root. It is
-// identical to canonicalNonRootPath except that it tolerates a drive/filesystem
-// root (e.g. "S:\" or "/"), which is a legitimate project root for workspaces
-// checked out at a volume root. Companion paths (database, lock) must keep
-// using canonicalNonRootPath, which still rejects the filesystem root.
-func canonicalProjectRootPath(path string) bool {
-	return path != "" &&
-		filepath.IsAbs(path) &&
-		filepath.Clean(path) == path
-}
-
 func (receipt CoreEffectReceipt) Outcome() CoreEffectOutcomeKind {
 	return receipt.outcome
 }
