@@ -17,6 +17,7 @@ import (
 	"github.com/m0n0x41d/haft/internal/fpf"
 	"github.com/m0n0x41d/haft/internal/fpf/typeenv"
 	"github.com/m0n0x41d/haft/internal/fpf/typeenvsql"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	_ "modernc.org/sqlite"
 )
 
@@ -480,7 +481,7 @@ func openSQLiteReadOnly(dbPath string) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("resolve FPF index path: %w", err)
 	}
-	readOnlyURI := url.URL{Scheme: "file", Path: absolutePath}
+	readOnlyURI := url.URL{Scheme: "file", Path: sqliteuri.Path(absolutePath)}
 	query := readOnlyURI.Query()
 	query.Set("mode", "ro")
 	readOnlyURI.RawQuery = query.Encode()

@@ -11,6 +11,7 @@ import (
 
 	"github.com/m0n0x41d/haft/db"
 	"github.com/m0n0x41d/haft/internal/projectledger"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 type serveMigrationSnapshot struct {
@@ -180,7 +181,7 @@ func verifyServeMigrationSnapshot(
 	query.Set("mode", "ro")
 	dsn := url.URL{
 		Scheme:   "file",
-		Path:     path,
+		Path:     sqliteuri.Path(path),
 		RawQuery: query.Encode(),
 	}
 	database, err := sql.Open("sqlite", dsn.String())

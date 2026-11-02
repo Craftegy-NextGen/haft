@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 func TestWritableProjectLedgerConnectionsPersistOneWALGeneration(
@@ -127,7 +129,7 @@ func writableProjectLedgerDSN(databasePath string) string {
 	query.Add("_pragma", "foreign_keys(1)")
 	dsn := url.URL{
 		Scheme:   "file",
-		Path:     databasePath,
+		Path:     sqliteuri.Path(databasePath),
 		RawQuery: query.Encode(),
 	}
 	return dsn.String()

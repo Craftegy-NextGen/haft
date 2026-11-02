@@ -18,6 +18,8 @@ import (
 	"strings"
 
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 const IntegrationLockSchemaVersion = "haft.fpf-integration-lock/v1"
@@ -438,7 +440,7 @@ func openIntegrationDatabaseReadOnly(path string) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("resolve FPF index path: %w", err)
 	}
-	readOnlyURI := url.URL{Scheme: "file", Path: absolutePath}
+	readOnlyURI := url.URL{Scheme: "file", Path: sqliteuri.Path(absolutePath)}
 	query := readOnlyURI.Query()
 	query.Set("mode", "ro")
 	readOnlyURI.RawQuery = query.Encode()

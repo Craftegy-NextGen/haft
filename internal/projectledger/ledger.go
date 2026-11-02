@@ -18,6 +18,7 @@ import (
 
 	"github.com/m0n0x41d/haft/internal/projectidentity"
 	_ "github.com/m0n0x41d/haft/internal/sqlitepolicy"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	"gopkg.in/yaml.v3"
 	_ "modernc.org/sqlite"
 )
@@ -506,7 +507,7 @@ func openTopologyWithHook(
 	query.Set("mode", mode)
 	query.Add("_pragma", "busy_timeout(5000)")
 	query.Add("_pragma", "foreign_keys(1)")
-	dsn := url.URL{Scheme: "file", Path: databasePath, RawQuery: query.Encode()}
+	dsn := url.URL{Scheme: "file", Path: sqliteuri.Path(databasePath), RawQuery: query.Encode()}
 	database, err := sql.Open("sqlite", dsn.String())
 	if err != nil {
 		closeOnFailure()
