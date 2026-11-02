@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"slices"
 	"testing"
@@ -292,12 +291,13 @@ func captureToolsListResponse(
 		_ = reader.Close()
 	}()
 
+	readResponse := readAllAsync(reader)
 	os.Stdout = writer
 	server.handleToolsList(request)
 	if err := writer.Close(); err != nil {
 		t.Fatal(err)
 	}
-	responseBytes, err := io.ReadAll(reader)
+	responseBytes, err := readResponse()
 	if err != nil {
 		t.Fatal(err)
 	}

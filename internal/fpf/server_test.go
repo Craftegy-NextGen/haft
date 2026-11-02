@@ -59,6 +59,26 @@ func mustToolsListResponseBytes(t *testing.T) []byte {
 	return responseBytes
 }
 
+// readAllAsync starts reading r to EOF in a goroutine and returns a function that waits for the result. A test
+// that points os.Stdout at an os.Pipe must start reading before the handler writes: a pipe buffer can be smaller
+// than a response (Windows anonymous pipes buffer far less than a tools/list page), and a write without a
+// concurrent reader then blocks forever.
+func readAllAsync(r io.Reader) func() ([]byte, error) {
+	type readResult struct {
+		data []byte
+		err  error
+	}
+	done := make(chan readResult, 1)
+	go func() {
+		data, err := io.ReadAll(r)
+		done <- readResult{data: data, err: err}
+	}()
+	return func() ([]byte, error) {
+		result := <-done
+		return result.data, result.err
+	}
+}
+
 func mustToolsListResponsePage(
 	t *testing.T,
 	server *Server,
@@ -91,6 +111,7 @@ func mustToolsListResponsePage(
 		os.Stdout = stdout
 	}()
 
+	readResponse := readAllAsync(reader)
 	os.Stdout = writer
 	server.handleToolsList(request)
 
@@ -98,7 +119,7 @@ func mustToolsListResponsePage(
 		t.Fatal(err)
 	}
 
-	responseBytes, err := io.ReadAll(reader)
+	responseBytes, err := readResponse()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1371,6 +1392,7 @@ func TestHandleInitialize_IncludesWorkflowInstructionsWhenConfigured(t *testing.
 		os.Stdout = stdout
 	}()
 
+	readResponse := readAllAsync(reader)
 	os.Stdout = writer
 	server.handleInitialize(request)
 
@@ -1378,7 +1400,7 @@ func TestHandleInitialize_IncludesWorkflowInstructionsWhenConfigured(t *testing.
 		t.Fatal(err)
 	}
 
-	responseBytes, err := io.ReadAll(reader)
+	responseBytes, err := readResponse()
 	if err != nil {
 		t.Fatal(err)
 	}
