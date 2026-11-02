@@ -464,7 +464,7 @@ func TestManagedHTMLCommentSectionManifestRoundTrip(
 	root := canonicalTempRoot(t)
 	fragment := mustHTMLCommentSectionFragment(
 		t,
-		root+"/CLAUDE.md",
+		filepath.Join(root, "CLAUDE.md"),
 		ComponentMCP,
 		"manifest instructions",
 	)

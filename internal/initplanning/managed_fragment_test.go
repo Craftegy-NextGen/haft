@@ -144,7 +144,7 @@ func TestKnownLegacyManagedFragmentRecordUsesExactObservedDigest(
 ) {
 	template := mustTOMLTableSetFragment(
 		t,
-		t.TempDir()+"/config.toml",
+		filepath.Join(t.TempDir(), "config.toml"),
 		"mcp_servers.haft",
 		[]string{"mcp_servers.haft", "mcp_servers.haft.env"},
 		`[mcp_servers.haft]
