@@ -142,13 +142,10 @@ func canonicalPublicationResourceSet(
 				"publication coordination resource is not canonical",
 			)
 		}
-		volumeRoot := filepath.VolumeName(resource) +
-			string(filepath.Separator)
-		if resource == volumeRoot {
-			return nil, "", fmt.Errorf(
-				"filesystem root cannot be a publication resource",
-			)
-		}
+		// A volume/filesystem root (e.g. "S:\" or "/") is a legitimate
+		// publication resource when the project itself is rooted at a
+		// drive root; the init project-root parser already permits that
+		// case, so this set must not reject it here.
 		if _, duplicate := seen[resource]; duplicate {
 			continue
 		}

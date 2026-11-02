@@ -595,7 +595,7 @@ func prepareLegacyRegistry(
 func mergeManagedRoots(left []string, right []string) ([]string, error) {
 	seen := make(map[string]struct{}, len(left)+len(right))
 	for _, candidate := range append(slices.Clone(left), right...) {
-		root, err := parseCanonicalAbsolutePath(candidate)
+		root, err := parseCanonicalProjectRoot(candidate)
 		if err != nil || root != candidate {
 			return nil, fmt.Errorf("installation managed root is invalid")
 		}

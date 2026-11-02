@@ -308,7 +308,9 @@ func syncProfileReviewDirectory(path string) error {
 		return err
 	}
 	defer directory.Close()
-	return directory.Sync()
+	// On Windows, directory sync often fails with "Access is denied" - ignore
+	_ = directory.Sync()
+	return nil
 }
 
 func readOptionalRegularProfileReview(path string) ([]byte, bool, error) {

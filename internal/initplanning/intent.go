@@ -323,7 +323,7 @@ func ParseInitIntent(input WeakInitIntent) (InitIntent, error) {
 	if err != nil {
 		return InitIntent{}, err
 	}
-	projectRoot, err := parseCanonicalAbsolutePath(input.ProjectRoot)
+	projectRoot, err := parseCanonicalProjectRoot(input.ProjectRoot)
 	if err != nil {
 		return InitIntent{}, fmt.Errorf("parse project root: %w", err)
 	}
@@ -369,6 +369,22 @@ func parseCanonicalAbsolutePath(raw string) (string, error) {
 	volumeRoot := filepath.VolumeName(raw) + string(filepath.Separator)
 	if raw == volumeRoot {
 		return "", fmt.Errorf("filesystem root cannot be an initialization target")
+	}
+	return raw, nil
+}
+
+// parseCanonicalProjectRoot validates an init project root. It enforces the
+// same canonical/absolute requirements as parseCanonicalAbsolutePath but
+// tolerates a drive/filesystem root (e.g. "S:\" on Windows or "/" on POSIX),
+// which is a legitimate project root for workspaces checked out at a volume
+// root. All other callers must keep using parseCanonicalAbsolutePath, which
+// still rejects the filesystem root.
+func parseCanonicalProjectRoot(raw string) (string, error) {
+	if raw == "" || raw != strings.TrimSpace(raw) {
+		return "", fmt.Errorf("path is required in exact form")
+	}
+	if !filepath.IsAbs(raw) || filepath.Clean(raw) != raw {
+		return "", fmt.Errorf("path must be canonical and absolute")
 	}
 	return raw, nil
 }

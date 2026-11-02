@@ -1,3 +1,5 @@
+//go:build darwin || linux
+
 // Interactive terminal dashboard for haft board.
 // Lightweight alt-screen TUI with tab switching, no external dependencies.
 package ui

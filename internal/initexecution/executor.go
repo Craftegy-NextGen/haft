@@ -73,7 +73,7 @@ func validateCoreEffectReceipt(
 	beforeSchema int,
 	afterSchema int,
 ) error {
-	if !canonicalNonRootPath(projectRoot) ||
+	if !canonicalProjectRootPath(projectRoot) ||
 		!canonicalNonRootPath(databasePath) {
 		return fmt.Errorf("core effect receipt path is invalid")
 	}
@@ -124,6 +124,17 @@ func canonicalNonRootPath(path string) bool {
 	}
 	volumeRoot := filepath.VolumeName(path) + string(filepath.Separator)
 	return path != volumeRoot
+}
+
+// canonicalProjectRootPath validates a project/store/coordinator root. It is
+// identical to canonicalNonRootPath except that it tolerates a drive/filesystem
+// root (e.g. "S:\" or "/"), which is a legitimate project root for workspaces
+// checked out at a volume root. Companion paths (database, lock) must keep
+// using canonicalNonRootPath, which still rejects the filesystem root.
+func canonicalProjectRootPath(path string) bool {
+	return path != "" &&
+		filepath.IsAbs(path) &&
+		filepath.Clean(path) == path
 }
 
 func (receipt CoreEffectReceipt) Outcome() CoreEffectOutcomeKind {
@@ -320,7 +331,7 @@ func NewHostManifestBinding(
 			"host manifest binding identity is not canonical",
 		)
 	}
-	if !canonicalNonRootPath(store.Root()) ||
+	if !canonicalProjectRootPath(store.Root()) ||
 		!canonicalNonRootPath(store.Path()) ||
 		store.Path() == store.Root() {
 		return HostManifestBinding{}, fmt.Errorf(
@@ -624,7 +635,7 @@ func validateCoordinatorPlacement(
 	coordinator initfs.PublicationCoordinator,
 	prepared []preparedHostPublication,
 ) error {
-	if !canonicalNonRootPath(coordinator.Root()) ||
+	if !canonicalProjectRootPath(coordinator.Root()) ||
 		!canonicalNonRootPath(coordinator.LockPath()) {
 		return fmt.Errorf("publication coordinator is invalid")
 	}

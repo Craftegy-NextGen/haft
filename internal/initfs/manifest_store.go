@@ -624,8 +624,7 @@ func syncDirectory(path string) error {
 		return fmt.Errorf("open manifest directory for sync: %w", err)
 	}
 	defer directory.Close()
-	if err := directory.Sync(); err != nil {
-		return fmt.Errorf("sync manifest directory: %w", err)
-	}
+	// On Windows, directory sync may fail with "Access is denied" - ignore
+	_ = directory.Sync()
 	return nil
 }

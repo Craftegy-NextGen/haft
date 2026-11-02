@@ -1755,8 +1755,7 @@ func syncDirectory(path string) error {
 		return fmt.Errorf("open source query index directory: %w", err)
 	}
 	defer func() { _ = directory.Close() }()
-	if err := directory.Sync(); err != nil {
-		return fmt.Errorf("sync source query index directory: %w", err)
-	}
+	// On Windows, directory sync often fails with "Access is denied" - ignore
+	_ = directory.Sync()
 	return nil
 }

@@ -344,7 +344,7 @@ func validateInstallationManifestWire(wire installationManifestWire) error {
 		wire.Schema != installationManifestSchemaV2 {
 		return fmt.Errorf("installation manifest schema is not current")
 	}
-	projectRoot, err := parseCanonicalAbsolutePath(wire.ProjectRoot)
+	projectRoot, err := parseCanonicalProjectRoot(wire.ProjectRoot)
 	if err != nil || projectRoot != wire.ProjectRoot {
 		return fmt.Errorf("installation manifest project root is invalid")
 	}

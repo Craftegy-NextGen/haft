@@ -1045,3 +1045,5 @@ func verifyLegacyMigrationReviewTablesEmpty(database *sql.DB) error {
 	}
 	return nil
 }
+
+
