@@ -1,3 +1,5 @@
+//go:build !windows
+
 // Package fpfrefresh contains the pure compatibility model used before an FPF
 // source refresh performs any repository mutation.
 package fpfrefresh

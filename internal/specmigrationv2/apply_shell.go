@@ -1,3 +1,5 @@
+//go:build darwin || linux
+
 package specmigrationv2
 
 import (
@@ -1485,3 +1487,5 @@ func recoveryForPlan(
 ) RecoveryRequired {
 	return recoveryForRequest(plan.request, phase, err)
 }
+
+

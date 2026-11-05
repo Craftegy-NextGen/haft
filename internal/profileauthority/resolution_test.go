@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/m0n0x41d/haft/internal/authority"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestEvaluateNewResolutionBindsExactSourceAndActionEnvelope(t *testing.T) {
@@ -224,7 +226,7 @@ func testResolutionClosure(
 ) (PreparedAuthorization, Closure) {
 	t.Helper()
 	prepared := testPreparedAuthorization(t, testPreparedInput{
-		root:          "/tmp/haft-profile-resolution-" + identity,
+		root:          testpath.Abs("/tmp/haft-profile-resolution-") + identity,
 		profileAuthor: "role-assignment:profile-author:" + identity,
 		identity:      identity,
 	})

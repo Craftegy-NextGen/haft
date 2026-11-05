@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -40,7 +41,7 @@ func TestGoldenE2EInitOnboardCommissionExternalRuntimeEvidenceCoverage(t *testin
 	defer restoreCwd()
 
 	preserveGoldenE2EHostGoModCache(t)
-	t.Setenv("HOME", filepath.Join(root, ".test-home"))
+	testpath.SetHome(t, filepath.Join(root, ".test-home"))
 
 	initLocal = true
 	runTypedCoreInitForTest(t)

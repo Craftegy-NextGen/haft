@@ -1,3 +1,9 @@
+# Line endings: LF in the repository and in every checkout, Windows included
+* text=auto eol=lf
+
+# Test fixture that is CRLF on purpose
+internal/core/source/testdata/pin-b/Engineering[[:space:]]DPF[[:space:]]Suite/SYSTEMS-ENGINEERING-PRINCIPLES-FRAMEWORK.md -text
+
 # Binary files — don't diff
 *.db binary
 

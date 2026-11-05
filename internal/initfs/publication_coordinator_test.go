@@ -240,7 +240,7 @@ func TestPublicationCoordinatorSerializesDifferentResourceSets(
 	if err != nil {
 		t.Fatalf("inspect coordination lock: %v", err)
 	}
-	if !info.Mode().IsRegular() || info.Mode().Perm() != 0o600 {
+	if !info.Mode().IsRegular() || coordinationLockModeDiffers(info) {
 		t.Fatalf("coordination lock mode = %s", info.Mode())
 	}
 }

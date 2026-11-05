@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,7 +10,7 @@ import (
 
 func TestDoctorEmbeddingConfigStatusRejectsMalformedActiveConfig(t *testing.T) {
 	home := writeDoctorGlobalConfig(t, "embedding: [")
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 
 	_, err := doctorEmbeddingConfigStatus()
 	if err == nil || !strings.Contains(err.Error(), "parse config") {
@@ -22,7 +23,7 @@ func TestDoctorEmbeddingConfigStatusReportsCurrentEmbeddingConfig(t *testing.T) 
 		t,
 		"embedding:\n  provider: openai\n  model: text-embedding-3-small\n  dim: 512\n",
 	)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	status, err := doctorEmbeddingConfigStatus()
@@ -36,7 +37,7 @@ func TestDoctorEmbeddingConfigStatusReportsCurrentEmbeddingConfig(t *testing.T) 
 
 func TestDoctorEmbeddingConfigStatusDoesNotRequireLocalSidecar(t *testing.T) {
 	home := writeDoctorGlobalConfig(t, "embedding:\n  provider: local\n")
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	t.Setenv("HAFT_EMBED_BIN", filepath.Join(home, "missing-haft-embed"))
 
 	status, err := doctorEmbeddingConfigStatus()
@@ -50,7 +51,7 @@ func TestDoctorEmbeddingConfigStatusDoesNotRequireLocalSidecar(t *testing.T) {
 
 func TestDoctorEmbeddingConfigStatusRejectsUnknownProvider(t *testing.T) {
 	home := writeDoctorGlobalConfig(t, "embedding:\n  provider: typo\n")
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 
 	_, err := doctorEmbeddingConfigStatus()
 	if err == nil || !strings.Contains(err.Error(), `unknown embedding provider "typo"`) {

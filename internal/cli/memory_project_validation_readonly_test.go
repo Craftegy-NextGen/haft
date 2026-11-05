@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"github.com/m0n0x41d/haft/internal/projectledger"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	"github.com/m0n0x41d/haft/internal/typedmemorywire"
 )
 
@@ -184,7 +186,7 @@ func newReadOnlyProjectValidationFixture(
 	t.Helper()
 	home := canonicalReadOnlyProjectValidationDirectory(t, t.TempDir())
 	root := canonicalReadOnlyProjectValidationDirectory(t, t.TempDir())
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	haftDirectory := filepath.Join(root, ".haft")
 	if err := os.MkdirAll(haftDirectory, 0o755); err != nil {
 		t.Fatal(err)
@@ -284,7 +286,7 @@ func readOnlyProjectValidationSchema(
 	t.Helper()
 	query := url.Values{}
 	query.Set("mode", "ro")
-	dsn := url.URL{Scheme: "file", Path: databasePath, RawQuery: query.Encode()}
+	dsn := url.URL{Scheme: "file", Path: sqliteuri.Path(databasePath), RawQuery: query.Encode()}
 	database, err := sql.Open("sqlite", dsn.String())
 	if err != nil {
 		t.Fatal(err)

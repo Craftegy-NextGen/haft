@@ -25,7 +25,7 @@ type PublicationLayout struct {
 func NewPublicationLayout(
 	input PublicationLayoutInput,
 ) (PublicationLayout, error) {
-	projectRoot, err := parseCanonicalAbsolutePath(input.ProjectRoot)
+	projectRoot, err := parseCanonicalProjectRoot(input.ProjectRoot)
 	if err != nil {
 		return PublicationLayout{}, fmt.Errorf(
 			"publication project root: %w",

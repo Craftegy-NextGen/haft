@@ -1,3 +1,5 @@
+//go:build !windows
+
 package fpfrefresh
 
 import (
@@ -326,7 +328,7 @@ func replaceLocalPracticeCandidate(path string, payload []byte) error {
 		return fmt.Errorf("replace Local-Practice candidate: %w", err)
 	}
 	keepTemporary = false
-	directory, err := os.Open(filepath.Dir(cleanPath))
+	directory, err := openDirectoryForSync(filepath.Dir(cleanPath))
 	if err != nil {
 		return fmt.Errorf("open Local-Practice directory for fsync: %w", err)
 	}

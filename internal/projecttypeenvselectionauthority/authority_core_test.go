@@ -10,6 +10,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/projectprofile"
 	"github.com/m0n0x41d/haft/internal/projecttypeenvprofilebasis"
 	"github.com/m0n0x41d/haft/internal/projecttypeenvprofilefit"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestProjectTypeEnvAuthorityCoreSealsExactOccurrenceAndStrictResolution(t *testing.T) {
@@ -159,7 +161,7 @@ func TestProjectTypeEnvAuthorityCoreSealsExactOccurrenceAndStrictResolution(t *t
 
 func TestProjectTypeEnvProfileFitPosturePreservesUnavailable(t *testing.T) {
 	root, err := projectprofile.NewProjectRootV1(
-		"/tmp/haft-typeenv-head-selection-unavailable-profile",
+		testpath.Abs("/tmp/haft-typeenv-head-selection-unavailable-profile"),
 	)
 	if err != nil {
 		t.Fatalf("NewProjectRootV1: %v", err)
@@ -439,7 +441,7 @@ func TestSpeechActRecordRejectsSemanticAndProjectCrossBinding(t *testing.T) {
 
 	t.Run("different project root", func(t *testing.T) {
 		variant := defaultSpeechActSourceVariant(t, fixture.content, fixture.request)
-		variant.projectRoot = "/tmp/different-project-root"
+		variant.projectRoot = testpath.Abs("/tmp/different-project-root")
 		source := buildSpeechActSourceVariant(
 			t, fixture.content, fixture.request, startedAt, variant,
 		)

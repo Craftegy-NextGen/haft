@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -17,7 +18,7 @@ func TestTypedPublicPiMigratesLegacySourceAndPreservesForeignState(
 	homeRoot := physicalInitTestTempDir(t)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	settingsPath := filepath.Join(projectRoot, ".pi", "settings.json")
 	if err := os.MkdirAll(filepath.Dir(settingsPath), 0o755); err != nil {
@@ -104,7 +105,7 @@ func TestTypedPublicPiOwnsObjectSourceWithoutOwningFilters(
 	homeRoot := physicalInitTestTempDir(t)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	settingsPath := filepath.Join(projectRoot, ".pi", "settings.json")
 	if err := os.MkdirAll(filepath.Dir(settingsPath), 0o755); err != nil {
@@ -169,7 +170,7 @@ func TestTypedPublicPiMigratesOnlyLegacyObjectSource(
 	homeRoot := physicalInitTestTempDir(t)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	settingsPath := filepath.Join(projectRoot, ".pi", "settings.json")
 	if err := os.MkdirAll(filepath.Dir(settingsPath), 0o755); err != nil {
@@ -213,7 +214,7 @@ func TestTypedPublicPiRejectsAmbiguousSourceBeforeWrites(
 	homeRoot := physicalInitTestTempDir(t)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	settingsPath := filepath.Join(projectRoot, ".pi", "settings.json")
 	if err := os.MkdirAll(filepath.Dir(settingsPath), 0o755); err != nil {

@@ -41,6 +41,8 @@ TODO.md
 /skills/
 /haft
 /bin/haft
+*.exe
+*.exe~
 /tui/
 
 .DS_Store

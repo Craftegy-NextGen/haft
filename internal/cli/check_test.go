@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strings"
@@ -622,7 +623,7 @@ func newCheckTestProject(t *testing.T) checkTestProject {
 	if err != nil {
 		t.Fatalf("resolve physical test home: %v", err)
 	}
-	t.Setenv("HOME", homeDir)
+	testpath.SetHome(t, homeDir)
 
 	root, err := filepath.EvalSymlinks(t.TempDir())
 	if err != nil {

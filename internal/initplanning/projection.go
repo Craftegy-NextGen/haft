@@ -136,7 +136,7 @@ func (builder HostAdapterProjectionBuilder) Build() (HostAdapterProjection, erro
 	if !builder.publication.valid() {
 		return HostAdapterProjection{}, fmt.Errorf("host adapter projection publication identity is invalid")
 	}
-	projectRoot, err := parseCanonicalAbsolutePath(builder.projectRoot)
+	projectRoot, err := parseCanonicalProjectRoot(builder.projectRoot)
 	if err != nil {
 		return HostAdapterProjection{}, fmt.Errorf("host adapter projection project root: %w", err)
 	}

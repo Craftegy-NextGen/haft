@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,7 +12,7 @@ import (
 )
 
 func TestResolveProjectBindingFromInput_WalksUpAndDerivesDBPath(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	testpath.SetHome(t, t.TempDir())
 	root := t.TempDir()
 	haftDir := filepath.Join(root, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {
@@ -61,7 +62,7 @@ func TestResolveProjectBindingFromInput_WalksUpAndDerivesDBPath(t *testing.T) {
 }
 
 func TestResolveProjectBindingFromInput_RejectsExpectedProjectIDMismatch(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	testpath.SetHome(t, t.TempDir())
 	intendedRoot := t.TempDir()
 	intendedHaftDir := filepath.Join(intendedRoot, ".haft")
 	if err := os.MkdirAll(intendedHaftDir, 0o755); err != nil {

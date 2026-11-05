@@ -16,6 +16,8 @@ import (
 	"testing"
 
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 const (
@@ -74,7 +76,7 @@ func openFrozenLegacyAuthoritySchema43(t *testing.T) *sql.DB {
 	query.Add("_pragma", "foreign_keys(1)")
 	location := url.URL{
 		Scheme:   "file",
-		Path:     databasePath,
+		Path:     sqliteuri.Path(databasePath),
 		RawQuery: query.Encode(),
 	}
 	dsn := location.String()

@@ -599,7 +599,7 @@ func reconcileCanonicalCarrierStages(store ManifestStore) error {
 			return fmt.Errorf("inspect canonical carrier stage %s: %w", path, err)
 		}
 		regular := info.Mode().IsRegular()
-		safeMode := info.Mode().Perm() == 0o600 || info.Mode().Perm() == 0o644
+		safeMode := canonicalCarrierStageModeSafe(info)
 		safeMode = safeMode &&
 			info.Mode()&(os.ModeSymlink|os.ModeSetuid|os.ModeSetgid|os.ModeSticky) == 0
 		if !regular || !safeMode {
@@ -616,16 +616,4 @@ func reconcileCanonicalCarrierStages(store ManifestStore) error {
 		return nil
 	}
 	return syncDirectory(parent)
-}
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open manifest directory for sync: %w", err)
-	}
-	defer directory.Close()
-	if err := directory.Sync(); err != nil {
-		return fmt.Errorf("sync manifest directory: %w", err)
-	}
-	return nil
 }

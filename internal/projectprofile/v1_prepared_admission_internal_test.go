@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestPreparedProfileAdmissionV1CanonicalMaterialIsExactlyDerived(t *testing.T) {
@@ -178,7 +180,7 @@ func TestPreparedProfileAdmissionV1ValidationRecomputesStoredMaterial(t *testing
 			return value
 		}},
 		{name: "project root", tamper: func(value preparedProfileAdmissionV1) preparedProfileAdmissionV1 {
-			value.projectRoot = ProjectRootV1{value: "/tmp/other-project"}
+			value.projectRoot = ProjectRootV1{value: testpath.Abs("/tmp/other-project")}
 			return value
 		}},
 	}

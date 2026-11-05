@@ -2,12 +2,13 @@ package embedding
 
 import (
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"path/filepath"
 	"testing"
 )
 
 func TestNewNormalizesSupportedProviders(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	testpath.SetHome(t, t.TempDir())
 	t.Setenv("OPENAI_API_KEY", "test-api-key")
 	t.Setenv(sidecarBinaryEnv, filepath.Join(t.TempDir(), "missing-haft-embed"))
 
@@ -67,7 +68,7 @@ func TestNewNormalizesSupportedProviders(t *testing.T) {
 }
 
 func TestNewRejectsUnknownProviderBeforeAdapterConstruction(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	testpath.SetHome(t, t.TempDir())
 	t.Setenv("OPENAI_API_KEY", "")
 	t.Setenv(sidecarBinaryEnv, filepath.Join(t.TempDir(), "missing-haft-embed"))
 

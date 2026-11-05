@@ -595,7 +595,7 @@ func prepareLegacyRegistry(
 func mergeManagedRoots(left []string, right []string) ([]string, error) {
 	seen := make(map[string]struct{}, len(left)+len(right))
 	for _, candidate := range append(slices.Clone(left), right...) {
-		root, err := parseCanonicalAbsolutePath(candidate)
+		root, err := parseCanonicalProjectRoot(candidate)
 		if err != nil || root != candidate {
 			return nil, fmt.Errorf("installation managed root is invalid")
 		}
@@ -848,7 +848,7 @@ func classifyManifestOwnedPath(
 		base.kind = PathMissingOwned
 		return base
 	}
-	modeChanged := uint32(observation.mode.Perm()) != manifest.Mode
+	modeChanged := observedModeDiffersFromManifest(observation, manifest)
 	if observation.digest != manifest.Digest || modeChanged {
 		base.kind = PathLocallyModifiedOwned
 		return base

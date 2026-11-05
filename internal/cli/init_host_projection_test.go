@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"slices"
@@ -22,7 +23,7 @@ func TestCurrentCoherentHostProjectionsOwnOnlyExactSharedFragments(
 	if err := os.MkdirAll(home, 0o755); err != nil {
 		t.Fatalf("create user home: %v", err)
 	}
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	executablePath := filepath.Join(t.TempDir(), "haft")
 	if err := os.WriteFile(executablePath, []byte("haft fixture"), 0o755); err != nil {
 		t.Fatalf("write executable fixture: %v", err)
@@ -413,7 +414,7 @@ func TestSelectedCurrentCoherentHostProjectionPublishesOnlySelectedComponents(
 	if err := os.MkdirAll(home, 0o755); err != nil {
 		t.Fatalf("create user home: %v", err)
 	}
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	executablePath := filepath.Join(t.TempDir(), "haft")
 	if err := os.WriteFile(executablePath, []byte("haft fixture"), 0o755); err != nil {
 		t.Fatalf("write executable fixture: %v", err)

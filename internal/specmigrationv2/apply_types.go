@@ -528,3 +528,5 @@ func (receipt MigrationEffectReceipt) SemanticReviewAdmissionDigest() SHA256 {
 func (receipt MigrationEffectReceipt) GitWitnessDigest() SHA256 {
 	return receipt.gitWitnessDigest
 }
+
+

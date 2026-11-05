@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 func TestSQLiteQueryIndex_SourceNativeTiersAndExactHydration(t *testing.T) {
@@ -845,7 +847,7 @@ func openSourceIndexReadOnlyTestDB(t *testing.T, dbPath string) *sql.DB {
 	if err != nil {
 		t.Fatalf("resolve source index path: %v", err)
 	}
-	readOnlyURI := url.URL{Scheme: "file", Path: absolutePath}
+	readOnlyURI := url.URL{Scheme: "file", Path: sqliteuri.Path(absolutePath)}
 	query := readOnlyURI.Query()
 	query.Set("mode", "ro")
 	readOnlyURI.RawQuery = query.Encode()

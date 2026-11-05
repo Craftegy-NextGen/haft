@@ -1,3 +1,5 @@
+//go:build !windows
+
 package p14acceptance
 
 import (
@@ -7,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"io/fs"
 	"os"
@@ -2008,7 +2011,7 @@ func TestP14InstalledCLIFixtureLifecyclePreservesProjectIdentity(
 		if err != nil {
 			t.Fatal(err)
 		}
-		t.Setenv("HOME", homeRoot)
+		testpath.SetHome(t, homeRoot)
 		handle, err := projectledger.OpenExisting(
 			context.Background(),
 			projectRoot,

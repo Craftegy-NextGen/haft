@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"path/filepath"
@@ -40,7 +41,7 @@ func TestTypedPublicOverseerPlanIsExactPreservesHookAndBecomesCurrent(
 	); err != nil {
 		t.Fatalf("write existing hook: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,

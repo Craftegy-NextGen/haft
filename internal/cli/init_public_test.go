@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"path/filepath"
@@ -142,7 +143,7 @@ func TestPublicInitProductionExplicitCodexUsesTypedOperation(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	output := &bytes.Buffer{}
 	cmd := newPublicInitTestCommand()
@@ -363,7 +364,7 @@ func TestPublicInitProductionStableHostSurfaceMatrix(
 				t.Fatalf("select host: %v", err)
 			}
 			initMCPOnly = testCase.mcpOnly
-			t.Setenv("HOME", homeRoot)
+			testpath.SetHome(t, homeRoot)
 
 			output := &bytes.Buffer{}
 			cmd := newPublicInitTestCommand()
@@ -553,7 +554,7 @@ func TestPublicInitProductionAppliesEveryExplicitHostFlag(
 			if err := selectInitHostFlag(testCase.host); err != nil {
 				t.Fatalf("selectInitHostFlag: %v", err)
 			}
-			t.Setenv("HOME", homeRoot)
+			testpath.SetHome(t, homeRoot)
 			output := &bytes.Buffer{}
 			cmd := newPublicInitTestCommand()
 			cmd.SetOut(output)
@@ -749,7 +750,7 @@ func TestPublicInitProductionAppliesExplicitSurfaceCombinations(
 			defer restoreFlags.apply()
 			clearInitHostFlags()
 			testCase.globals()
-			t.Setenv("HOME", homeRoot)
+			testpath.SetHome(t, homeRoot)
 			output := &bytes.Buffer{}
 			cmd := newPublicInitTestCommand()
 			cmd.SetOut(output)
@@ -788,7 +789,7 @@ func TestPublicInitProductionPreservesContentOutsideManagedMarkers(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initClaude = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	instructionPath := filepath.Join(projectRoot, "CLAUDE.md")
 	operatorContent := "# Operator prelude\n\nKeep this text.\n"
 	if err := os.WriteFile(
@@ -838,7 +839,7 @@ func TestPublicInitCodexPreservesAGENTSBytesOutsideManagedMarkers(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	instructionPath := filepath.Join(projectRoot, "AGENTS.md")
 	operatorContent := []byte(
 		"# Operator prelude\r\n\r\nKeep these exact CRLF bytes.\r\n",
@@ -890,7 +891,7 @@ func TestPublicInitCodexReplacesPreManifestHaftInstructions(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	instructionPath := filepath.Join(projectRoot, "AGENTS.md")
 	prefix := []byte("# Operator prelude\n\n")
 	legacy := []byte(
@@ -947,7 +948,7 @@ func TestPublicInitProductionDoesNotAdoptForeignManagedSurface(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	foreignPath := filepath.Join(
 		projectRoot,
 		".codex",
@@ -1000,7 +1001,7 @@ func TestPublicInitCodexReplacesKnownQuintMCPAndPreservesForeignTOML(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	configPath := filepath.Join(
 		projectRoot,
@@ -1071,7 +1072,7 @@ func TestPublicInitCodexReplacesKnownPortableHaftMCPAndPreservesForeignTOML(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	configPath := filepath.Join(
 		projectRoot,
@@ -1159,7 +1160,7 @@ func TestPublicInitCodexReplacesPublishedV8HaftMCPAndPreservesForeignTOML(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	configPath := filepath.Join(projectRoot, ".codex", "config.toml")
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
@@ -1287,7 +1288,7 @@ func TestPublicInitCodexRejectsNearMissPortableHaftMCPBeforeAnyWrite(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	configPath := filepath.Join(
 		projectRoot,
@@ -1352,7 +1353,7 @@ func TestPublicInitCodexRejectsForeignQuintMCPBeforeAnyWrite(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	configPath := filepath.Join(
 		projectRoot,
@@ -1425,7 +1426,7 @@ func TestPublicInitCodexAdoptsExistingConfigAndPreservesToolApprovals(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	haftRoot := filepath.Join(projectRoot, ".haft")
 	if err := os.MkdirAll(haftRoot, 0o755); err != nil {
@@ -1611,7 +1612,7 @@ func TestPublicInitInteractiveSelectionAppliesWithoutSecondConfirmation(
 	restoreFlags := captureInitHostFlagState()
 	defer restoreFlags.apply()
 	clearInitHostFlags()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	output := &bytes.Buffer{}
 	cmd := newPublicInitTestCommand()
@@ -1679,7 +1680,7 @@ func TestPublicInitInteractiveCancellationLeavesProjectUntouched(
 	restoreFlags := captureInitHostFlagState()
 	defer restoreFlags.apply()
 	clearInitHostFlags()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	output := &bytes.Buffer{}
 	cmd := newPublicInitTestCommand()

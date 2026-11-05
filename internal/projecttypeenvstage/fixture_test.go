@@ -23,6 +23,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/runtimemechanism"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 var (
@@ -436,7 +438,7 @@ func stageStoreStageFixture(
 		t.Fatalf("projecttypeenvassertionreport.NewReport(): %v", err)
 	}
 	profileRoot, err := projectprofile.NewProjectRootV1(
-		"/tmp/haft-stage-store-fixture",
+		testpath.Abs("/tmp/haft-stage-store-fixture"),
 	)
 	if err != nil {
 		t.Fatalf("NewProjectRootV1(): %v", err)

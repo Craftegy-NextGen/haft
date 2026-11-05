@@ -17,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/m0n0x41d/haft/internal/core/carrier"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	_ "modernc.org/sqlite"
 )
 
@@ -211,7 +212,7 @@ func equalFiles(a, b map[string][]byte) bool {
 	return true
 }
 func readSQLite(ctx context.Context, p string, r Request, s *Snapshot) error {
-	u := url.URL{Scheme: "file", Path: p}
+	u := url.URL{Scheme: "file", Path: sqliteuri.Path(p)}
 	q := url.Values{}
 	q.Set("mode", "ro")
 	q.Add("_pragma", "query_only(1)")

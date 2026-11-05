@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"database/sql"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"slices"
@@ -20,7 +21,7 @@ func TestCompilePublicHostInitPlanUsesExactRequestBindings(
 	projectRoot := filepath.Join(t.TempDir(), "project")
 	userHomeRoot := t.TempDir()
 	projectID := "qnt_e3149c17"
-	t.Setenv("HOME", userHomeRoot)
+	testpath.SetHome(t, userHomeRoot)
 	request, err := compilePublicInitRequest(
 		weakPublicInitRequest{
 			invocation:  initplanning.InvocationExplicit,
@@ -172,7 +173,7 @@ func TestCompilePublicCorePlanSelectsMigrationForPreBindingLedger(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", userHomeRoot)
+	testpath.SetHome(t, userHomeRoot)
 	haftDir := filepath.Join(projectRoot, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {
 		t.Fatalf("create .haft: %v", err)

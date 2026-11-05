@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"path/filepath"
@@ -23,7 +24,7 @@ func TestTypedPublicAgentInitPreviewsAndRemovesDeprecatedSkills(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	skillsRoot := filepath.Join(homeRoot, ".agents", "skills")
 	deprecatedPath := filepath.Join(skillsRoot, "q-reason")
 	unrelatedPath := filepath.Join(skillsRoot, "custom-skill")
@@ -139,7 +140,7 @@ func TestDeprecatedSkillCleanupRejectsChangedTreeBeforeRemoval(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	deprecatedPath := filepath.Join(
 		homeRoot,
 		".agents",
@@ -214,7 +215,7 @@ func TestDeprecatedSkillCleanupRejectsSymlinkSwapBeforeRemoval(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	deprecatedPath := filepath.Join(
 		homeRoot,
 		".agents",
@@ -294,7 +295,7 @@ func TestDeprecatedSkillCleanupIncludesSelectedHostWithoutAgents(
 	if err != nil {
 		t.Fatalf("resolve project root: %v", err)
 	}
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	deprecatedPath := filepath.Join(
 		projectRoot,
 		".claude",
@@ -460,7 +461,7 @@ func TestTypedPublicLegacyCommandCleanupRemovesExactFilesAndPreservesForeignEntr
 ) {
 	homeRoot := publicCleanupPhysicalTempDir(t)
 	projectRoot := publicCleanupPhysicalTempDir(t)
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	claudeRoot := filepath.Join(homeRoot, ".claude", "commands")
 	codexRoot := filepath.Join(homeRoot, ".codex", "prompts")
 	legacyPaths := []string{
@@ -700,7 +701,7 @@ func TestTypedPublicLegacyCommandCleanupRejectsSymlinkAndNonRegularTargets(
 	t.Run("directory", func(t *testing.T) {
 		homeRoot := publicCleanupPhysicalTempDir(t)
 		projectRoot := publicCleanupPhysicalTempDir(t)
-		t.Setenv("HOME", homeRoot)
+		testpath.SetHome(t, homeRoot)
 		commandPath := filepath.Join(
 			homeRoot,
 			".codex",
@@ -979,7 +980,7 @@ func compilePublicCleanupTestPlan(
 	publicDeprecatedSkillCleanupPlan,
 ) {
 	t.Helper()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	input.invocation = initplanning.InvocationExplicit
 	input.projectRoot = projectRoot
 	input.projectID = "qnt_e3149c17"

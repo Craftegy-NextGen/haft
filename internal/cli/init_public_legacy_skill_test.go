@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -166,7 +167,7 @@ func TestPublicInitReplacesLegacyHaftSkillForClaudeAndCodex(
 	clearInitHostFlags()
 	initClaude = true
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	skillPath := filepath.Join(
 		homeRoot,
@@ -259,7 +260,7 @@ func TestPublicInitReplacesPreMarkerGrokSkill(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initGrok = true
-	t.Setenv("HOME", physicalHomeRoot)
+	testpath.SetHome(t, physicalHomeRoot)
 
 	grokAdapter, err := currentSkillAdapterForPlatform("grok")
 	if err != nil {
@@ -352,7 +353,7 @@ func TestPublicInitReplacesEveryRecognizedCodexSkillFromExactCurrentBundle(
 	defer restoreFlags.apply()
 	clearInitHostFlags()
 	initCodex = true
-	t.Setenv("HOME", physicalHomeRoot)
+	testpath.SetHome(t, physicalHomeRoot)
 
 	codexAdapter, err := currentSkillAdapterForPlatform("codex")
 	if err != nil {
@@ -466,7 +467,7 @@ func TestPublicInitPreservesUnrelatedReservedNameSkill(
 	clearInitHostFlags()
 	initClaude = true
 	initCodex = true
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	skillPath := filepath.Join(
 		homeRoot,

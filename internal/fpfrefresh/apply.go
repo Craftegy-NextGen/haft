@@ -1,3 +1,8 @@
+//go:build !windows
+
+// Package fpfrefresh contains the bounded preparation and recovery primitives
+// used to refresh Haft's pinned FPF source and its derived database.
+// Note: This package requires Unix-specific features (O_NOFOLLOW, flock) not available on Windows.
 package fpfrefresh
 
 import (

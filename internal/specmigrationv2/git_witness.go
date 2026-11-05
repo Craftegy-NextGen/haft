@@ -624,3 +624,5 @@ func witnessHeadFromOrigin(origin SourceEditionOrigin) GitCommitOID {
 		return GitCommitOID{}
 	}
 }
+
+

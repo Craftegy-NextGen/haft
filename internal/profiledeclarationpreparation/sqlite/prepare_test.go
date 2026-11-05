@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"testing"
@@ -200,7 +201,7 @@ func newPreparationDatabase(t testing.TB) (*sql.DB, string) {
 		t.Fatal(err)
 	}
 	home := t.TempDir()
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	directory := filepath.Join(home, ".haft", "projects", projectID)
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		t.Fatal(err)

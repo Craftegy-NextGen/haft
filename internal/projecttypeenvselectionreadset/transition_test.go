@@ -16,6 +16,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/projecttypeenvselection"
 	"github.com/m0n0x41d/haft/internal/sqlitetransaction"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type transitionReadSetFixture struct {
@@ -282,7 +284,7 @@ func readSetTransitionStage(
 		t.Fatalf("projecttypeenvassertionreport.NewReport(): %v", err)
 	}
 	profileRoot, err := projectprofile.NewProjectRootV1(
-		"/tmp/haft-transition-readset-" + project.String(),
+		testpath.Abs("/tmp/haft-transition-readset-") + project.String(),
 	)
 	if err != nil {
 		t.Fatalf("NewProjectRootV1(): %v", err)

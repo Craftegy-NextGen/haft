@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type v1Fixture struct {
@@ -339,7 +341,7 @@ func TestFinalV1CandidateBindsExactWorkWithoutDuplicatingWorkFields(t *testing.T
 
 	assertCandidateWorkParameterMismatchV1(t, fixture, "classifier_version", "h-onboard/other")
 	assertCandidateWorkParameterMismatchV1(t, fixture, "policy_version", "profile-policy/other")
-	assertCandidateWorkParameterMismatchV1(t, fixture, "project_root", "/tmp/another-project")
+	assertCandidateWorkParameterMismatchV1(t, fixture, "project_root", testpath.Abs("/tmp/another-project"))
 	assertCandidateWorkParameterMismatchV1(t, fixture, "session_ref", "session:other")
 }
 
@@ -496,7 +498,7 @@ func FuzzFinalV1WorkRecordCanonicalJSONNeverPanics(f *testing.F) {
 
 func mustV1Fixture(t testing.TB) v1Fixture {
 	t.Helper()
-	projectRoot, err := projectprofile.NewProjectRootV1("/tmp/haft-project")
+	projectRoot, err := projectprofile.NewProjectRootV1(testpath.Abs("/tmp/haft-project"))
 	if err != nil {
 		t.Fatalf("NewProjectRootV1: %v", err)
 	}

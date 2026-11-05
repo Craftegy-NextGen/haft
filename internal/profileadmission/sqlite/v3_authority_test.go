@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestValidateV3WorkInputBindsExactCanonicalPayload(t *testing.T) {
@@ -50,7 +52,7 @@ func canonicalV3WorkInputTestRow(t testing.TB, scopeID string) v3WorkInputRow {
 	observationDigest := v3TestDigest("observation")
 	dto := v3WorkInputJSON{
 		Schema:            v3WorkInputSchema,
-		ProjectRoot:       "/tmp/haft-v3-work-input-test",
+		ProjectRoot:       testpath.Abs("/tmp/haft-v3-work-input-test"),
 		SuggestionRef:     "profile-suggestion:test",
 		DetectorVersion:   "profile-detector/v1",
 		PolicyVersion:     "profile-policy/v1",

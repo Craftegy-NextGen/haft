@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"sync"
@@ -599,7 +600,7 @@ func newTransactionFixtureWithPayload(
 		t.Fatalf("write fixture project identity: %v", err)
 	}
 	home := filepath.Join(directory, "home")
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	databaseDirectory := filepath.Join(home, ".haft", "projects", projectID)
 	if err := os.MkdirAll(databaseDirectory, 0o755); err != nil {
 		t.Fatalf("create fixture project-ledger directory: %v", err)

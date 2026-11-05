@@ -23,6 +23,7 @@ import (
 	"time"
 
 	_ "github.com/m0n0x41d/haft/internal/sqlitepolicy"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	_ "modernc.org/sqlite"
 )
 
@@ -222,7 +223,7 @@ func sqliteConnectionDSN(dbPath string) (string, error) {
 	query.Add("_pragma", "foreign_keys(1)")
 	dsn := url.URL{
 		Scheme:   "file",
-		Path:     filepath.Clean(absolutePath),
+		Path:     sqliteuri.Path(filepath.Clean(absolutePath)),
 		RawQuery: query.Encode(),
 	}
 	return dsn.String(), nil

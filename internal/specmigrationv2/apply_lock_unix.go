@@ -49,3 +49,5 @@ func (lock migrationLock) close() error {
 	}
 	return lock.file.Close()
 }
+
+

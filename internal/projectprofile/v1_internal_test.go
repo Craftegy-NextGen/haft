@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type structurallyUnknownScopeV1 struct {
@@ -355,7 +357,7 @@ func internalV1WorkRecord(
 	if err != nil {
 		t.Fatalf("DigestProfileOnboardingMethodContractV1: %v", err)
 	}
-	rootBinding, err := NewMethodParameterBinding("project_root", "/tmp/haft-project")
+	rootBinding, err := NewMethodParameterBinding("project_root", testpath.Abs("/tmp/haft-project"))
 	if err != nil {
 		t.Fatalf("NewMethodParameterBinding(project_root): %v", err)
 	}

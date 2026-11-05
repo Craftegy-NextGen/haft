@@ -36,6 +36,7 @@ import (
 	projecttypeenvselectioneffectsqlite "github.com/m0n0x41d/haft/internal/projecttypeenvselectioneffect/sqlite"
 	"github.com/m0n0x41d/haft/internal/projecttypeenvstage"
 	"github.com/m0n0x41d/haft/internal/sqlitetransaction"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
 	"github.com/m0n0x41d/haft/internal/typedmemorystore"
 	"gopkg.in/yaml.v3"
@@ -1856,7 +1857,7 @@ func openProjectDatabaseReadOnly(projectID string) (*sql.DB, error) {
 }
 
 func openSQLiteReadOnly(path string) (*sql.DB, error) {
-	dsnURL := url.URL{Scheme: "file", Path: path}
+	dsnURL := url.URL{Scheme: "file", Path: sqliteuri.Path(path)}
 	query := dsnURL.Query()
 	query.Set("mode", "ro")
 	query.Add("_pragma", "query_only(1)")

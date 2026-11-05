@@ -15,6 +15,7 @@ import (
 	"github.com/m0n0x41d/haft/internal/fpf"
 	"github.com/m0n0x41d/haft/internal/projectidentity"
 	"github.com/m0n0x41d/haft/internal/projectmemory"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	"github.com/m0n0x41d/haft/internal/typedmemorystore"
 	"github.com/m0n0x41d/haft/internal/typedmemorywire"
 )
@@ -1393,7 +1394,7 @@ func projectMemoryFullKernelVersionPresent(
 	query.Set("mode", "ro")
 	dsn := url.URL{
 		Scheme:   "file",
-		Path:     databasePath,
+		Path:     sqliteuri.Path(databasePath),
 		RawQuery: query.Encode(),
 	}
 	database, err := sql.Open("sqlite", dsn.String())

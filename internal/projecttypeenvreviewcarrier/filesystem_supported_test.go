@@ -1,21 +1,16 @@
-//go:build darwin || linux
+//go:build darwin || linux || windows
 
 package projecttypeenvreviewcarrier
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"sync"
 	"testing"
-	"time"
-
-	"golang.org/x/sys/unix"
 )
 
 func TestInstallCreatesRereadsAndExactlyReusesCarrier(t *testing.T) {
@@ -48,7 +43,7 @@ func TestInstallCreatesRereadsAndExactlyReusesCarrier(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat installed carrier: %v", err)
 	}
-	if info.Mode().Perm() != 0o600 {
+	if installedCarrierNotPrivate(info, root) {
 		t.Fatalf("installed permissions = %o, want 600", info.Mode().Perm())
 	}
 	stages, err := filepath.Glob(
@@ -534,114 +529,6 @@ func TestBoundaryRejectsNonRegularCarrier(t *testing.T) {
 	}
 	if !info.IsDir() {
 		t.Fatalf("carrier directory was replaced: mode=%v", info.Mode())
-	}
-}
-
-func TestReadRejectsFIFOWithoutBlocking(t *testing.T) {
-	const childMode = "HAFT_GENESIS_REVIEW_FIFO_CHILD"
-	const rootVariable = "HAFT_GENESIS_REVIEW_FIFO_ROOT"
-	if os.Getenv(childMode) == "1" {
-		root := os.Getenv(rootVariable)
-		if _, err := Read(root); err == nil {
-			t.Fatal("read accepted FIFO carrier")
-		}
-		return
-	}
-	root := newProjectRoot(t)
-	target := filepath.Join(root, DirectoryName, FileName)
-	if err := unix.Mkfifo(target, 0o600); err != nil {
-		t.Fatalf("create carrier FIFO: %v", err)
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	command := exec.CommandContext(
-		ctx,
-		os.Args[0],
-		"-test.run=^TestReadRejectsFIFOWithoutBlocking$",
-	)
-	command.Env = append(
-		os.Environ(),
-		childMode+"=1",
-		rootVariable+"="+root,
-	)
-	output, err := command.CombinedOutput()
-	if ctx.Err() != nil {
-		t.Fatalf("FIFO read blocked until timeout: %v; output=%s", ctx.Err(), output)
-	}
-	if err != nil {
-		t.Fatalf("FIFO rejection subprocess failed: %v; output=%s", err, output)
-	}
-}
-
-func TestReadRejectsFIFOLockWithoutBlocking(t *testing.T) {
-	const childMode = "HAFT_GENESIS_REVIEW_FIFO_LOCK_CHILD"
-	const rootVariable = "HAFT_GENESIS_REVIEW_FIFO_LOCK_ROOT"
-	if os.Getenv(childMode) == "1" {
-		root := os.Getenv(rootVariable)
-		if _, err := Read(root); err == nil {
-			t.Fatal("read accepted FIFO lock")
-		}
-		return
-	}
-	root := newProjectRoot(t)
-	carrier := mustCarrier(t, []byte("{\"review\":\"current\"}\n"))
-	target := filepath.Join(root, DirectoryName, FileName)
-	if err := os.WriteFile(target, carrier.Bytes(), 0o600); err != nil {
-		t.Fatalf("write carrier: %v", err)
-	}
-	lockPath := filepath.Join(root, DirectoryName, lockFileName)
-	if err := unix.Mkfifo(lockPath, 0o600); err != nil {
-		t.Fatalf("create lock FIFO: %v", err)
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	command := exec.CommandContext(
-		ctx,
-		os.Args[0],
-		"-test.run=^TestReadRejectsFIFOLockWithoutBlocking$",
-	)
-	command.Env = append(
-		os.Environ(),
-		childMode+"=1",
-		rootVariable+"="+root,
-	)
-	output, err := command.CombinedOutput()
-	if ctx.Err() != nil {
-		t.Fatalf(
-			"FIFO lock read blocked until timeout: %v; output=%s",
-			ctx.Err(),
-			output,
-		)
-	}
-	if err != nil {
-		t.Fatalf(
-			"FIFO lock rejection subprocess failed: %v; output=%s",
-			err,
-			output,
-		)
-	}
-}
-
-func TestHeldDirectoryRejectsAttachedPathSwap(t *testing.T) {
-	root := newProjectRoot(t)
-	directory, err := openHeldDirectoryForMutation(root)
-	if err != nil {
-		t.Fatalf("open held directory: %v", err)
-	}
-	t.Cleanup(func() { _ = directory.Close() })
-	heldPath := filepath.Join(root, ".haft-held")
-	if err := os.Rename(filepath.Join(root, DirectoryName), heldPath); err != nil {
-		t.Fatalf("move held .haft: %v", err)
-	}
-	outside := t.TempDir()
-	if err := os.Symlink(outside, filepath.Join(root, DirectoryName)); err != nil {
-		t.Fatalf("swap .haft path: %v", err)
-	}
-	if err := directory.lockExclusive(); err == nil {
-		t.Fatal("held directory accepted a swapped .haft path")
-	}
-	if _, err := os.Stat(filepath.Join(outside, FileName)); !os.IsNotExist(err) {
-		t.Fatalf("writer escaped through swapped .haft path: %v", err)
 	}
 }
 

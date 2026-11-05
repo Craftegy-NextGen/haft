@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/m0n0x41d/haft/internal/fpf"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	"github.com/spf13/cobra"
 	_ "modernc.org/sqlite"
 )
@@ -346,7 +347,7 @@ func openFPFDBImage(
 		return nil, nil, fmt.Errorf("resolve temp db path: %w", err)
 	}
 
-	readOnlyURI := url.URL{Scheme: "file", Path: absolutePath}
+	readOnlyURI := url.URL{Scheme: "file", Path: sqliteuri.Path(absolutePath)}
 	query := readOnlyURI.Query()
 	query.Set("mode", "ro")
 	query.Set("immutable", "1")

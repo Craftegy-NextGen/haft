@@ -7,6 +7,8 @@ import (
 
 	profileadmissionsqlite "github.com/m0n0x41d/haft/internal/profileadmission/sqlite"
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestCanonicalProjectSpecificationApplicabilityIsUnderdeterminedWithoutAdmission(
@@ -322,7 +324,7 @@ func mustCLICanonicalProfileApplicabilityBasis(
 	matrix projectprofile.CapabilityApplicabilityMatrix,
 ) canonicalProfileApplicabilityBasis {
 	t.Helper()
-	projectRoot, err := projectprofile.NewProjectRootV1("/tmp/haft-profile")
+	projectRoot, err := projectprofile.NewProjectRootV1(testpath.Abs("/tmp/haft-profile"))
 	if err != nil {
 		t.Fatal(err)
 	}

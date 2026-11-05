@@ -122,7 +122,7 @@ func validateKnownLegacyDigestRegistryWire(
 	if !adapterEditionPattern.MatchString(wire.Edition) {
 		return fmt.Errorf("known-legacy registry edition is invalid")
 	}
-	projectRoot, err := parseCanonicalAbsolutePath(wire.ProjectRoot)
+	projectRoot, err := parseCanonicalProjectRoot(wire.ProjectRoot)
 	if err != nil || projectRoot != wire.ProjectRoot {
 		return fmt.Errorf("known-legacy registry project root is invalid")
 	}

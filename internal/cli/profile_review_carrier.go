@@ -302,15 +302,6 @@ func writeAndSyncProfileReviewStage(file *os.File, content []byte) error {
 	return nil
 }
 
-func syncProfileReviewDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer directory.Close()
-	return directory.Sync()
-}
-
 func readOptionalRegularProfileReview(path string) ([]byte, bool, error) {
 	info, err := os.Lstat(path)
 	if errors.Is(err, os.ErrNotExist) {

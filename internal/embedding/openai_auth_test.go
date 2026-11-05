@@ -1,6 +1,7 @@
 package embedding
 
 import (
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"testing"
@@ -8,7 +9,7 @@ import (
 
 func TestResolveOpenAIAPIKeyPrefersEnvironment(t *testing.T) {
 	home := writeLegacyHaftAuthFile(t, `{"api_key":"file-key"}`)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	t.Setenv("OPENAI_API_KEY", "environment-key")
 
 	key, err := resolveOpenAIAPIKey()
@@ -22,7 +23,7 @@ func TestResolveOpenAIAPIKeyPrefersEnvironment(t *testing.T) {
 
 func TestResolveOpenAIAPIKeyReadsLegacyHaftAuthFile(t *testing.T) {
 	home := writeLegacyHaftAuthFile(t, `{"api_key":"file-key"}`)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	key, err := resolveOpenAIAPIKey()
@@ -39,7 +40,7 @@ func TestResolveOpenAIAPIKeyRejectsOAuthOnlyLegacyAuth(t *testing.T) {
 		t,
 		`{"codex_access_token":"oauth-token","codex_refresh_token":"refresh-token"}`,
 	)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	_, err := resolveOpenAIAPIKey()
@@ -63,7 +64,7 @@ func TestResolveOpenAIAPIKeyDoesNotReadCodexOAuth(t *testing.T) {
 		t.Fatalf("write Codex auth file: %v", err)
 	}
 
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	_, err = resolveOpenAIAPIKey()
@@ -74,7 +75,7 @@ func TestResolveOpenAIAPIKeyDoesNotReadCodexOAuth(t *testing.T) {
 
 func TestResolveOpenAIAPIKeyRejectsMalformedLegacyAuth(t *testing.T) {
 	home := writeLegacyHaftAuthFile(t, `{"api_key":`)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	t.Setenv("OPENAI_API_KEY", "")
 
 	_, err := resolveOpenAIAPIKey()
@@ -84,7 +85,7 @@ func TestResolveOpenAIAPIKeyRejectsMalformedLegacyAuth(t *testing.T) {
 }
 
 func TestResolveOpenAIAPIKeyFailsWithoutDirectKey(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	testpath.SetHome(t, t.TempDir())
 	t.Setenv("OPENAI_API_KEY", "")
 
 	_, err := resolveOpenAIAPIKey()

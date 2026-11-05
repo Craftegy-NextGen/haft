@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/m0n0x41d/haft/internal/project"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 const (
@@ -170,7 +171,7 @@ func inspectProjectDB(dbPath string) (string, int) {
 	query.Set("mode", "ro")
 	dsn := url.URL{
 		Scheme:   "file",
-		Path:     dbPath,
+		Path:     sqliteuri.Path(dbPath),
 		RawQuery: query.Encode(),
 	}
 	db, err := sql.Open("sqlite", dsn.String())

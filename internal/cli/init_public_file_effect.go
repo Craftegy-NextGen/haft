@@ -255,22 +255,6 @@ func writePublicExactFile(effect publicExactFileEffect) error {
 	return nil
 }
 
-func syncPublicExactFileDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open public exact file directory %s: %w", path, err)
-	}
-	syncErr := directory.Sync()
-	closeErr := directory.Close()
-	if syncErr != nil {
-		return fmt.Errorf("sync public exact file directory %s: %w", path, syncErr)
-	}
-	if closeErr != nil {
-		return fmt.Errorf("close public exact file directory %s: %w", path, closeErr)
-	}
-	return nil
-}
-
 func applyPublicExactFileEffects(
 	ctx context.Context,
 	effects []publicExactFileEffect,

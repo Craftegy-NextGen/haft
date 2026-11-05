@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/m0n0x41d/haft/internal/specmigrationv2"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestSHA256RequiresCanonicalLowercasePrefixedForm(t *testing.T) {
@@ -101,7 +103,7 @@ func TestSourceAndTargetIdentifiersAreShapeSpecific(t *testing.T) {
 }
 
 func TestCarrierIdentifiersRejectTraversalAbsoluteAndBackslashPaths(t *testing.T) {
-	invalid := []string{"../secret", "/tmp/target", `docs\target.md`, "./target.md"}
+	invalid := []string{"../secret", testpath.Abs("/tmp/target"), `docs\target.md`, "./target.md"}
 	for _, raw := range invalid {
 		_, err := specmigrationv2.NewSourceCarrierID(raw)
 		if err == nil {
