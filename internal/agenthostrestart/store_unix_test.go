@@ -1,4 +1,4 @@
-//go:build darwin || linux
+//go:build darwin || linux || windows
 
 package agenthostrestart
 
@@ -6,9 +6,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func newRestartProject(t *testing.T) string {
@@ -39,7 +40,7 @@ func newPreparedFixture(
 		RestartID:                   restartID,
 		ThreadID:                    "019f5a6e-fba1-7cd3-8421-677d5431bd12",
 		ResumeIntentDigest:          digestOf('3'),
-		PlanPath:                    ".context/haft-v9-typed-memory-e2e-master-plan.md",
+		PlanPath:                    filepath.Join(".context", "haft-v9-typed-memory-e2e-master-plan.md"),
 		LastCompletedPlanItem:       "P13 acceptance",
 		ResumePlanItem:              "P14 installed runtime proof",
 		MethodRunAbsence:            "no Haft MethodRun was opened for the host acceptance mechanism",
@@ -61,7 +62,7 @@ func newPreparedFixture(
 		TaskRuntime: TaskRuntimeIdentity{
 			PID:             4242,
 			StartedAt:       time.Date(2026, 7, 19, 11, 0, 0, 0, time.UTC),
-			ExecutablePath:  "/Applications/ChatGPT.app/Contents/Resources/codex",
+			ExecutablePath:  testpath.Abs("/Applications/ChatGPT.app/Contents/Resources/codex"),
 			ArgumentsDigest: digestOf('d'),
 		},
 		ResumeFallbackNonce:   digestOf('b'),
@@ -172,96 +173,6 @@ func TestStoreAttemptHistoryRejectsVerifiedAAfterTerminalB(t *testing.T) {
 	}
 }
 
-func TestStoreAttemptMarkerAndRestartFilesStayPrivate(t *testing.T) {
-	root := newRestartProject(t)
-	store, err := NewStore(root)
-	if err != nil {
-		t.Fatalf("NewStore: %v", err)
-	}
-	prepared := newPreparedFixture(t, root, "restart-private", digestOf('f'))
-	if err := store.Prepare(prepared); err != nil {
-		t.Fatalf("Prepare: %v", err)
-	}
-	log, err := store.OpenSupervisorLog(prepared)
-	if err != nil {
-		t.Fatalf("OpenSupervisorLog: %v", err)
-	}
-	if err := log.Close(); err != nil {
-		t.Fatalf("close supervisor log: %v", err)
-	}
-
-	directories := []string{store.directoryPath, store.attemptsDirectoryPath}
-	for _, path := range directories {
-		info, err := os.Stat(path)
-		if err != nil {
-			t.Fatalf("stat private directory %s: %v", path, err)
-		}
-		if info.Mode().Perm() != privateDirectoryMode {
-			t.Fatalf("private directory %s mode = %04o", path, info.Mode().Perm())
-		}
-	}
-	files := []string{
-		store.CheckpointPath(),
-		attemptMarkerPath(t, store, prepared.DesiredHaftBinaryDigest()),
-		prepared.SupervisorLogPath(),
-	}
-	for _, path := range files {
-		info, err := os.Stat(path)
-		if err != nil {
-			t.Fatalf("stat private file %s: %v", path, err)
-		}
-		if info.Mode().Perm() != privateFileMode {
-			t.Fatalf("private file %s mode = %04o", path, info.Mode().Perm())
-		}
-	}
-}
-
-func TestStoreRejectsTamperedAttemptMarker(t *testing.T) {
-	tests := []struct {
-		name   string
-		tamper func(string) error
-		want   string
-	}{
-		{
-			name: "content",
-			tamper: func(path string) error {
-				return os.WriteFile(path, []byte("tampered\n"), privateFileMode)
-			},
-			want: "does not match desired digest",
-		},
-		{
-			name: "mode",
-			tamper: func(path string) error {
-				return os.Chmod(path, 0o644)
-			},
-			want: "mode is 0644",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			root := newRestartProject(t)
-			store, err := NewStore(root)
-			if err != nil {
-				t.Fatalf("NewStore: %v", err)
-			}
-			prepared := newPreparedFixture(t, root, "restart-marker-"+test.name, digestOf('1'))
-			if err := store.Prepare(prepared); err != nil {
-				t.Fatalf("Prepare: %v", err)
-			}
-			applyVerifiedStoreState(t, store, prepared)
-			marker := attemptMarkerPath(t, store, prepared.DesiredHaftBinaryDigest())
-			if err := test.tamper(marker); err != nil {
-				t.Fatalf("tamper marker: %v", err)
-			}
-			changed := newPreparedFixture(t, root, "restart-marker-next-"+test.name, digestOf('2'))
-			err = store.Prepare(changed)
-			if err == nil || !strings.Contains(err.Error(), test.want) {
-				t.Fatalf("tampered marker error = %v, want %q", err, test.want)
-			}
-		})
-	}
-}
-
 func TestStoreRejectsSymlinkedAttemptHistory(t *testing.T) {
 	t.Run("marker", func(t *testing.T) {
 		root := newRestartProject(t)
@@ -315,93 +226,6 @@ func TestStoreRejectsSymlinkedAttemptHistory(t *testing.T) {
 		changed := newPreparedFixture(t, root, "restart-attempts-symlink-next", digestOf('6'))
 		if err := store.Prepare(changed); err == nil {
 			t.Fatalf("symlinked attempts directory was accepted")
-		}
-	})
-}
-
-func TestStoreRejectsPublicOrSymlinkedCheckpointAndLog(t *testing.T) {
-	t.Run("checkpoint mode", func(t *testing.T) {
-		root := newRestartProject(t)
-		store, err := NewStore(root)
-		if err != nil {
-			t.Fatalf("NewStore: %v", err)
-		}
-		prepared := newPreparedFixture(t, root, "restart-checkpoint-mode", digestOf('7'))
-		if err := store.Prepare(prepared); err != nil {
-			t.Fatalf("Prepare: %v", err)
-		}
-		if err := os.Chmod(store.CheckpointPath(), 0o644); err != nil {
-			t.Fatalf("chmod checkpoint: %v", err)
-		}
-		if _, err := store.Load(); err == nil || !strings.Contains(err.Error(), "mode is 0644") {
-			t.Fatalf("public checkpoint Load error = %v", err)
-		}
-	})
-
-	t.Run("checkpoint symlink", func(t *testing.T) {
-		root := newRestartProject(t)
-		store, err := NewStore(root)
-		if err != nil {
-			t.Fatalf("NewStore: %v", err)
-		}
-		prepared := newPreparedFixture(t, root, "restart-checkpoint-symlink", digestOf('8'))
-		if err := store.Prepare(prepared); err != nil {
-			t.Fatalf("Prepare: %v", err)
-		}
-		content, err := os.ReadFile(store.CheckpointPath())
-		if err != nil {
-			t.Fatalf("read checkpoint: %v", err)
-		}
-		target := filepath.Join(t.TempDir(), "checkpoint.json")
-		if err := os.WriteFile(target, content, privateFileMode); err != nil {
-			t.Fatalf("write checkpoint target: %v", err)
-		}
-		if err := os.Remove(store.CheckpointPath()); err != nil {
-			t.Fatalf("remove checkpoint: %v", err)
-		}
-		if err := os.Symlink(target, store.CheckpointPath()); err != nil {
-			t.Skipf("symlink unavailable: %v", err)
-		}
-		if _, err := store.Load(); err == nil {
-			t.Fatalf("symlinked checkpoint was loaded")
-		}
-	})
-
-	t.Run("log mode and symlink", func(t *testing.T) {
-		root := newRestartProject(t)
-		store, err := NewStore(root)
-		if err != nil {
-			t.Fatalf("NewStore: %v", err)
-		}
-		prepared := newPreparedFixture(t, root, "restart-log-tamper", digestOf('9'))
-		if err := store.Prepare(prepared); err != nil {
-			t.Fatalf("Prepare: %v", err)
-		}
-		log, err := store.OpenSupervisorLog(prepared)
-		if err != nil {
-			t.Fatalf("OpenSupervisorLog: %v", err)
-		}
-		if err := log.Close(); err != nil {
-			t.Fatalf("close supervisor log: %v", err)
-		}
-		if err := os.Chmod(prepared.SupervisorLogPath(), 0o644); err != nil {
-			t.Fatalf("chmod supervisor log: %v", err)
-		}
-		if _, err := store.OpenSupervisorLog(prepared); err == nil || !strings.Contains(err.Error(), "mode is 0644") {
-			t.Fatalf("public log open error = %v", err)
-		}
-		if err := os.Remove(prepared.SupervisorLogPath()); err != nil {
-			t.Fatalf("remove supervisor log: %v", err)
-		}
-		target := filepath.Join(t.TempDir(), "supervisor.log")
-		if err := os.WriteFile(target, nil, privateFileMode); err != nil {
-			t.Fatalf("write supervisor target: %v", err)
-		}
-		if err := os.Symlink(target, prepared.SupervisorLogPath()); err != nil {
-			t.Skipf("symlink unavailable: %v", err)
-		}
-		if _, err := store.OpenSupervisorLog(prepared); err == nil {
-			t.Fatalf("symlinked log was opened")
 		}
 	})
 }

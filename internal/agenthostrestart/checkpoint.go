@@ -1,5 +1,3 @@
-//go:build darwin || linux
-
 // Package agenthostrestart defines the durable, fail-closed handoff used to
 // prove one installed Haft runtime across a Codex host restart.
 //

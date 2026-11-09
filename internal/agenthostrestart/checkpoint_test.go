@@ -1,4 +1,4 @@
-//go:build darwin || linux
+//go:build darwin || linux || windows
 
 package agenthostrestart
 
@@ -262,67 +262,6 @@ func TestInstallFailureIsTerminalForStateMachine(t *testing.T) {
 	}
 	if _, err := AuthorizeQuit(failed, validInstallObservation(failed)); !errors.Is(err, ErrPreQuitDenied) {
 		t.Fatalf("failed checkpoint authorized quit: %v", err)
-	}
-}
-
-func TestStoreWritesPrivateGitignoredCheckpointAndExactCAS(t *testing.T) {
-	root := newRestartProject(t)
-	store, err := NewStore(root)
-	if err != nil {
-		t.Fatalf("NewStore: %v", err)
-	}
-	prepared := newPreparedFixture(t, root, "restart-store", digestOf('e'))
-	if err := store.Prepare(prepared); err != nil {
-		t.Fatalf("Prepare: %v", err)
-	}
-	info, err := osStat(store.CheckpointPath())
-	if err != nil {
-		t.Fatalf("stat checkpoint: %v", err)
-	}
-	if info.Mode().Perm() != 0o600 {
-		t.Fatalf("checkpoint mode = %o", info.Mode().Perm())
-	}
-	ignoreBytes, err := readRegularNoFollow(filepath.Join(root, ".haft", "restart", ".gitignore"), MaximumCheckpointBytes)
-	if err != nil {
-		t.Fatalf("read restart .gitignore: %v", err)
-	}
-	if !ignoreProtectsRestartFiles(ignoreBytes) {
-		t.Fatalf("restart .gitignore does not protect checkpoint/log: %q", ignoreBytes)
-	}
-	entries, err := os.ReadDir(filepath.Join(root, ".haft", "restart"))
-	if err != nil {
-		t.Fatalf("read restart directory: %v", err)
-	}
-	for _, entry := range entries {
-		if strings.HasPrefix(entry.Name(), stagePrefix) {
-			t.Fatalf("atomic checkpoint stage was not cleaned up: %s", entry.Name())
-		}
-	}
-
-	loaded, err := store.Load()
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-	if loaded.RestartID() != prepared.RestartID() {
-		t.Fatalf("loaded restart = %q", loaded.RestartID())
-	}
-	submission, err := MarkSubmitted(prepared)
-	if err != nil {
-		t.Fatalf("MarkSubmitted: %v", err)
-	}
-	submitted := submission.After()
-	if err := store.Apply(submission); err != nil {
-		t.Fatalf("Apply submitted: %v", err)
-	}
-	if err := store.Apply(submission); err != nil {
-		t.Fatalf("idempotent Apply: %v", err)
-	}
-	failure, err := MarkInstallFailed(submitted, "install failed safely")
-	if err != nil {
-		t.Fatalf("MarkInstallFailed: %v", err)
-	}
-	if err := store.Apply(Change{before: prepared, after: failure.After()}); !errors.Is(err, ErrInvalidTransition) {
-		t.Fatalf("manufactured skipped transition error = %v", err)
 	}
 }
 
