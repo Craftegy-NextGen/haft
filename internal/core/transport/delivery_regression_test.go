@@ -16,6 +16,7 @@ import (
 	"github.com/m0n0x41d/haft/internal/core/app"
 	"github.com/m0n0x41d/haft/internal/core/carrier"
 	"github.com/m0n0x41d/haft/internal/core/delivery"
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 // Measure the actual serialized MCP result, including both representations and
@@ -219,7 +220,7 @@ func TestMCPCodeCaptureMemberContinuations(t *testing.T) {
 
 func TestMCPCodeCaptureEscapedFilenameRoutes(t *testing.T) {
 	root := t.TempDir()
-	escapedName := strings.Repeat("\x01", 101) + ".go"
+	escapedName := testpath.Name(strings.Repeat("\x01", 101) + ".go")
 	fixture := map[string]string{
 		"go.mod":           "module example.com/er01r2\n\ngo 1.25.0\n",
 		"greeting.go":      "package greeting\n\nfunc Greeting() string { return \"Hello!\" }\n",

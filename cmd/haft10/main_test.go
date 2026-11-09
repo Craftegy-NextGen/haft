@@ -263,7 +263,7 @@ func TestActualBinaryCLIMCPAndLocalInit(t *testing.T) {
 		t.Fatal(err, string(output))
 	}
 	cfg, err := os.ReadFile(filepath.Join(root, ".codex", "config.toml"))
-	if err != nil || !bytes.Contains(cfg, []byte(binary)) {
+	if err != nil || !bytes.Contains(cfg, []byte(testpath.TOMLEscape(binary))) {
 		t.Fatal(err, string(cfg))
 	}
 	rerun := exec.Command(binary, "init", "--codex", "--root", root)

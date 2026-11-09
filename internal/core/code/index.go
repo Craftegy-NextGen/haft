@@ -101,7 +101,7 @@ func indexFromFiles(input map[string][]byte, config Config, previous *Index, sta
 	}
 	selection := build.Context{GOOS: config.GOOS, GOARCH: config.GOARCH, Compiler: "gc", CgoEnabled: config.CGOEnabled, BuildTags: config.BuildTags, ToolTags: config.ToolTags, ReleaseTags: releaseTags}
 	selection.OpenFile = func(p string) (io.ReadCloser, error) {
-		raw, ok := files[path.Clean(p)]
+		raw, ok := files[path.Clean(slashPath(p))]
 		if !ok {
 			return nil, fmt.Errorf("source not captured: %s", p)
 		}

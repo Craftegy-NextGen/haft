@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -348,19 +347,7 @@ func TestCaptureRefusesCodeChangedByToolchainProbeBeforeClaim(t *testing.T) {
 		t.Fatal(err)
 	}
 	shimDir := t.TempDir()
-	quotedGo := "'" + strings.ReplaceAll(realGo, "'", "'\"'\"'") + "'"
-	shim := fmt.Sprintf(`#!/bin/sh
-if [ "$1" = "version" ]; then
-cat > answer.go <<'GO'
-package answer
-func Answer() int { return 2 }
-GO
-fi
-exec %s "$@"
-`, quotedGo)
-	if err := os.WriteFile(filepath.Join(shimDir, "go"), []byte(shim), 0700); err != nil {
-		t.Fatal(err)
-	}
+	writeGoVersionShim(t, shimDir, realGo)
 	originalPath := os.Getenv("PATH")
 	t.Setenv("PATH", shimDir+string(os.PathListSeparator)+originalPath)
 	changed := public(t, s, q)

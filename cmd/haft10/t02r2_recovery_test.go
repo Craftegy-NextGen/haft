@@ -27,8 +27,8 @@ func TestT02R2ActualCLIRecoverySurvivesLongPaths(t *testing.T) {
 			base := t.TempDir()
 			home := t.TempDir()
 			longBase := t02r2LongPath(base, 2)
-			original := filepath.Join(longBase, "Original-é\"Root")
-			copied := filepath.Join(longBase, "Copied-é\"Root")
+			original := filepath.Join(longBase, testpath.Name("Original-é\"Root"))
+			copied := filepath.Join(longBase, testpath.Name("Copied-é\"Root"))
 			oldSource := filepath.Join(original, "FPF")
 			newSource := filepath.Join(copied, "FPF")
 			t02Mkdir(t, oldSource)
@@ -72,7 +72,7 @@ func TestT02R2ActualCLIRecoverySurvivesLongPaths(t *testing.T) {
 				t.Fatal("copied source did not survive original move", code, retry, log)
 			}
 
-			missing := filepath.Join(t02r2LongPath(base, 4), "missing-é\"source")
+			missing := filepath.Join(t02r2LongPath(base, 4), testpath.Name("missing-é\"source"))
 			beforeMissing := t02Snapshot(t, copied)
 			code, unavailable, log := t02r2RunCLI(t, binary, home, "init", "--codex", "--root", copied, "--source-root", missing)
 			t02r2RequireRecovery(t, code, unavailable, log, "host_source_unavailable")
@@ -82,7 +82,7 @@ func TestT02R2ActualCLIRecoverySurvivesLongPaths(t *testing.T) {
 			if !reflect.DeepEqual(beforeMissing, t02Snapshot(t, copied)) {
 				t.Fatal("unavailable explicit source changed copied project")
 			}
-			regularFile := filepath.Join(t02r2LongPath(base, 4), "file-é\"source.txt")
+			regularFile := filepath.Join(t02r2LongPath(base, 4), testpath.Name("file-é\"source.txt"))
 			t02Write(t, regularFile, []byte("not a source directory\n"))
 			beforeFile := t02Snapshot(t, copied)
 			code, fileRefusal, log := t02r2RunCLI(t, binary, home, "init", "--codex", "--root", copied, "--source-root", regularFile)
@@ -98,7 +98,7 @@ func TestT02R2ActualCLIRecoverySurvivesLongPaths(t *testing.T) {
 				t.Fatal("regular-file refusal changed copied project")
 			}
 
-			externalRoot := filepath.Join(t02r2LongPath(base, 4), "shared-é\"source")
+			externalRoot := filepath.Join(t02r2LongPath(base, 4), testpath.Name("shared-é\"source"))
 			externalOriginal := filepath.Join(base, "external-original")
 			externalCopy := filepath.Join(base, "external-copy")
 			t02Mkdir(t, externalRoot)

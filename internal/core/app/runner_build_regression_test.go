@@ -310,6 +310,9 @@ func runnerSelectedInputs(t *testing.T, root string, raw []byte) map[string]bool
 		if err != nil {
 			t.Fatal(err)
 		}
+		if filepath.VolumeName(physical) != filepath.VolumeName(root) {
+			continue // another volume (GOROOT beside a project on a different drive) is outside the root; Rel cannot relate it
+		}
 		dir, err := filepath.Rel(root, physical)
 		if err != nil {
 			t.Fatal(err)

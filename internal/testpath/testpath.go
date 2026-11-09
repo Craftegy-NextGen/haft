@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -68,4 +69,46 @@ func JSONString(s string) string {
 		panic(err)
 	}
 	return string(encoded)
+}
+
+// Name returns a file or directory name that the running OS accepts, from a
+// fixture name written for Unix. Where the path separator is "/" (Linux,
+// macOS) the name is returned unchanged. Windows forbids the control
+// characters and the characters < > : " | ? * in a name, so there each of
+// them becomes a legal stand-in: the fullwidth form of the printable ones, and
+// U+2028 (LINE SEPARATOR, which JSON encoders escape as they do a control
+// character) for a control character. The mapping is not injective: use it
+// for a fixture that needs a few unusual names, not for names that must differ
+// only by the forbidden character.
+func Name(name string) string {
+	return nameFor(name, filepath.Separator)
+}
+
+// nameFor is Name with the separator supplied, so both branches can be tested
+// on every OS.
+func nameFor(name string, separator rune) string {
+	if separator == '/' {
+		return name
+	}
+	return strings.Map(windowsSafeRune, name)
+}
+
+func windowsSafeRune(r rune) rune {
+	switch {
+	case r < 0x20:
+		return '\u2028'
+	case strings.ContainsRune(`<>:"|?*`, r):
+		return r + 0xFEE0 // the fullwidth form, U+FF01 to U+FF5E
+	default:
+		return r
+	}
+}
+
+// TOMLEscape returns s as it is spelled inside a TOML basic string, for
+// fixtures that look for a path in a TOML file haft wrote: a backslash and a
+// double quote are escaped. A Unix path without either character (every
+// temporary directory path) is returned unchanged; a Windows path has its
+// backslashes doubled.
+func TOMLEscape(s string) string {
+	return strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(s)
 }

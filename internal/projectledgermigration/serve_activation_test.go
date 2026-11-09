@@ -557,7 +557,7 @@ func assertSecureServeSnapshot(t *testing.T, path string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !info.Mode().IsRegular() || info.Mode().Perm() != 0o600 {
+	if serveSnapshotNotPrivate(info, path) {
 		t.Fatalf("snapshot mode = %v, want regular 0600", info.Mode())
 	}
 }
