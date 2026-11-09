@@ -1,5 +1,3 @@
-//go:build !windows
-
 package p14acceptance
 
 import (
@@ -7,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"os/exec"
@@ -1428,8 +1427,8 @@ func syntheticP14MemoryReadScenario(
 		context.Background(),
 		declared,
 		syntheticP14MemoryReadFixture(),
-		"/synthetic/haft",
-		"/synthetic/project",
+		testpath.Abs("/synthetic/haft"),
+		testpath.Abs("/synthetic/project"),
 		p14TestDigest("synthetic-memory-candidate"),
 		executeSyntheticP14MemoryReadCandidate,
 	)
@@ -1652,8 +1651,8 @@ func TestP14MemoryReadBuildersShareOneExactCLIAndMCPRequest(t *testing.T) {
 				context.Background(),
 				declared,
 				fixture,
-				"/synthetic/haft",
-				"/synthetic/project",
+				testpath.Abs("/synthetic/haft"),
+				testpath.Abs("/synthetic/project"),
 				p14TestDigest("synthetic-memory-candidate"),
 				executeSyntheticP14MemoryReadCandidate,
 			)

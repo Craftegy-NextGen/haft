@@ -1,11 +1,10 @@
-//go:build !windows
-
 package p14acceptance
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"io/fs"
 	"os"
@@ -1006,12 +1005,12 @@ func syntheticP14InitMatrixFixture() p14InitMatrixFixture {
 		cases = append(cases, p14InitMatrixFixtureCase{
 			ID:                    policy.ID,
 			TemplateKind:          policy.TemplateKind,
-			ProjectTemplateRoot:   "/synthetic/p14/init/" + policy.ID + "/project",
+			ProjectTemplateRoot:   testpath.Abs("/synthetic/p14/init/" + policy.ID + "/project"),
 			ProjectTemplateDigest: p14TestDigest("init-project:" + policy.ID),
-			HomeTemplateRoot:      "/synthetic/p14/init/" + policy.ID + "/home",
+			HomeTemplateRoot:      testpath.Abs("/synthetic/p14/init/" + policy.ID + "/home"),
 			HomeTemplateDigest:    p14TestDigest("init-home:" + policy.ID),
-			ProjectExecutionRoot:  "/synthetic/p14/runtime/" + policy.ID + "/project",
-			HomeExecutionRoot:     "/synthetic/p14/runtime/" + policy.ID + "/home",
+			ProjectExecutionRoot:  testpath.Abs("/synthetic/p14/runtime/" + policy.ID + "/project"),
+			HomeExecutionRoot:     testpath.Abs("/synthetic/p14/runtime/" + policy.ID + "/home"),
 		})
 	}
 	return p14InitMatrixFixture{

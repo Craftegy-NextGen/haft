@@ -1,5 +1,3 @@
-//go:build !windows
-
 package p14acceptance
 
 import (

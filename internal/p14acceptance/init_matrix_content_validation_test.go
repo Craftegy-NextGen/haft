@@ -1,5 +1,3 @@
-//go:build !windows
-
 package p14acceptance
 
 import (
@@ -1018,21 +1016,6 @@ func collectP14InitManifestPaths(
 	}
 	slices.Sort(result)
 	return result, nil
-}
-
-func readP14InitRegularFile(path string) ([]byte, fs.FileMode, error) {
-	info, err := os.Lstat(path)
-	if err != nil {
-		return nil, 0, err
-	}
-	if !info.Mode().IsRegular() {
-		return nil, 0, fmt.Errorf("%s is not a regular file", path)
-	}
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, 0, err
-	}
-	return content, info.Mode().Perm(), nil
 }
 
 func validateP14InitExperimentalHostsAbsent(

@@ -1,5 +1,3 @@
-//go:build !windows
-
 package p14acceptance
 
 import (
@@ -9,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"os/exec"
@@ -1570,7 +1569,7 @@ func TestP14FPFQueryProjectionBuilderProducesSharedExactSurfaceMatrix(t *testing
 	scenario, err := buildP14FPFQueryProjectionScenario(
 		context.Background(),
 		declared,
-		"/synthetic/haft",
+		testpath.Abs("/synthetic/haft"),
 		p14TestDigest("synthetic-candidate"),
 		revision,
 		executeSyntheticP14FPFProjectionCandidate,

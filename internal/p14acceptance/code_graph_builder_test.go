@@ -1,5 +1,3 @@
-//go:build !windows
-
 package p14acceptance
 
 import (
@@ -8,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os/exec"
 	"slices"
 	"sort"
@@ -1364,8 +1363,8 @@ func TestP14CodeExploreBuildersCloseInstalledAndLiveSurfaces(
 		scenario, err := buildP14CodeExploreScenario(
 			context.Background(),
 			declared,
-			"/synthetic/haft",
-			"/synthetic/project",
+			testpath.Abs("/synthetic/haft"),
+			testpath.Abs("/synthetic/project"),
 			p14TestDigest("synthetic-code-explore"),
 			executeSyntheticP14CodeExploreCandidate,
 		)

@@ -1,5 +1,3 @@
-//go:build !windows
-
 package p14acceptance
 
 import (
@@ -7,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"path/filepath"
 	"slices"
@@ -1066,9 +1065,9 @@ func syntheticP14MemoryOperationFixture(
 	)
 	reread := syntheticP14MemoryOperationRereadRequest(fixture)
 	return p14MemoryOperationFixture{
-		SelectedProjectRoot:        "/synthetic/p14/memory/selected-project",
+		SelectedProjectRoot:        testpath.Abs("/synthetic/p14/memory/selected-project"),
 		SelectedProjectBasisDigest: p14TestDigest("memory-selected-project-basis"),
-		HomeTemplateRoot:           "/synthetic/p14/memory/home-template",
+		HomeTemplateRoot:           testpath.Abs("/synthetic/p14/memory/home-template"),
 		HomeTemplateDigest:         p14TestDigest("memory-home-template"),
 		Cases: []p14MemoryOperationFixtureCase{
 			{
