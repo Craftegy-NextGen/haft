@@ -1,92 +1,22 @@
-//go:build windows
-
 package overseer
 
 import (
 	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
+
+	"github.com/m0n0x41d/haft/internal/winproc"
 )
 
-// RunConfiguredReviewer runs the configured reviewer based on the config
-func RunConfiguredReviewer(
-	ctx context.Context,
-	projectRoot string,
-	config Config,
-	stored StoredRun,
-) (ReviewerRunResult, error) {
-	config = normalizeConfig(config)
-	command := strings.TrimSpace(config.ReviewerCommand)
-	if command == "" {
-		return ReviewerRunResult{}, fmt.Errorf("reviewer_command is required for reviewer_agent=%s", config.ReviewerAgent)
-	}
-
-	timeout := time.Duration(config.ReviewTimeoutSeconds) * time.Second
-	if timeout <= 0 {
-		timeout = time.Duration(DefaultConfig().ReviewTimeoutSeconds) * time.Second
-	}
-
-	runDir := filepath.Join(OverseerDir(projectRoot), "reviewer", stored.Run.ReviewRunID)
-	if err := os.MkdirAll(runDir, 0o755); err != nil {
-		return ReviewerRunResult{}, fmt.Errorf("create reviewer run dir: %w", err)
-	}
-
-	packetPath := filepath.Join(runDir, "packet.json")
-	promptPath := filepath.Join(runDir, "prompt.md")
-	resultPath := filepath.Join(runDir, "review-result.json")
-	schemaPath := filepath.Join(runDir, "review-result.schema.json")
-
-	if err := writeJSONFile(packetPath, stored.Packet); err != nil {
-		return ReviewerRunResult{}, fmt.Errorf("write reviewer packet: %w", err)
-	}
-	if err := os.WriteFile(promptPath, []byte(BuildReviewerPrompt(stored, packetPath)), 0o644); err != nil {
-		return ReviewerRunResult{}, fmt.Errorf("write reviewer prompt: %w", err)
-	}
-	if err := os.WriteFile(schemaPath, []byte(ReviewResultJSONSchema()), 0o644); err != nil {
-		return ReviewerRunResult{}, fmt.Errorf("write reviewer schema: %w", err)
-	}
-
-	env := append(os.Environ(),
-		"HAFT_PROJECT_ROOT="+projectRoot,
-		"HAFT_OVERSEER_PACKET_FILE="+packetPath,
-		"HAFT_OVERSEER_PROMPT_FILE="+promptPath,
-		"HAFT_OVERSEER_RESULT_FILE="+resultPath,
-		"HAFT_OVERSEER_SCHEMA_FILE="+schemaPath,
-		"HAFT_OVERSEER_RUN_ID="+stored.Run.ReviewRunID,
-		"HAFT_OVERSEER_PACKET_ID="+stored.Packet.PacketID,
-	)
-
-	stdout, err := runReviewerShellCommand(ctx, command, projectRoot, env, timeout)
-	if errors.Is(err, context.DeadlineExceeded) {
-		return ReviewerRunResult{}, fmt.Errorf("reviewer command timed out after %s: %s", timeout, stdout)
-	}
-	if err != nil {
-		return ReviewerRunResult{}, fmt.Errorf("reviewer command failed: %w: %s", err, stdout)
-	}
-
-	input, err := readReviewerResult(resultPath, stdout)
-	if err != nil {
-		return ReviewerRunResult{}, err
-	}
-	input.Reviewer = reviewerForConfig(config, input.Reviewer)
-
-	return ReviewerRunResult{
-		Input:      input,
-		PromptPath: promptPath,
-		PacketPath: packetPath,
-		ResultPath: resultPath,
-		Stdout:     stdout,
-	}, nil
-}
-
-// runReviewerShellCommand runs a shell command on Windows
+// runReviewerShellCommand is the Windows sibling of runReviewerShellCommand in
+// runner_unix.go. The reviewer command runs under cmd.exe instead of /bin/sh,
+// and the shell and every process it starts share a job object instead of a
+// process group (ADR-092 G8), so a timeout ends the reviewer itself, not only
+// the shell.
 func runReviewerShellCommand(
 	ctx context.Context,
 	command string,
@@ -97,8 +27,9 @@ func runReviewerShellCommand(
 	execCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	// Use cmd.exe /c on Windows (instead of /bin/sh -c on Unix)
-	cmd := exec.CommandContext(execCtx, "cmd.exe", "/c", command)
+	shell := reviewerShell()
+	cmd := exec.Command(shell)
+	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: reviewerShellCommandLine(shell, command)}
 	cmd.Dir = projectRoot
 	cmd.Env = env
 
@@ -106,160 +37,57 @@ func runReviewerShellCommand(
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 
-	if err := cmd.Start(); err != nil {
+	job, err := winproc.Start(cmd)
+	if err != nil {
 		return "", err
 	}
+	// Descendants of a reviewer that exits by itself keep running, as members
+	// of a Unix process group outlive its leader.
+	defer func() { _ = job.Release() }()
 
-	if err := cmd.Wait(); err != nil {
-		return output.String(), fmt.Errorf("command wait: %w", err)
-	}
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Wait()
+	}()
 
-	return output.String(), nil
-}
-
-// ReviewAbstention creates an abstention result when reviewer can't run
-func ReviewAbstention(config Config, stored StoredRun, reason string) ReviewResultInput {
-	return ReviewResultInput{
-		Mode:    "review_abstention",
-		Verdict: "review_abstained",
-		Reviewer: reviewerForConfig(config, Reviewer{
-			SessionRelationToAuthor: "independent_review_session",
-			InputSources:            []string{stored.Packet.PacketID},
-		}),
-		ScopeCoverage: ScopeCoverage{
-			ModesReviewed: []string{},
-			FilesReviewed: []string{},
-			FetchesUsed:   []string{},
-			Abstentions:   []string{strings.TrimSpace(reason)},
-		},
-		Findings: []ReviewFinding{},
-		NonFindings: []NonFinding{{
-			Claim: "Reviewer did not run.",
-			Basis: strings.TrimSpace(reason),
-			Scope: stored.Run.ReviewRunID,
-		}},
+	select {
+	case err := <-done:
+		return strings.TrimSpace(output.String()), err
+	case <-execCtx.Done():
+		_ = terminateProcessGroup(job, done)
+		return strings.TrimSpace(output.String()), execCtx.Err()
 	}
 }
 
-// ReviewResultJSONSchema returns the JSON schema for review results
-func ReviewResultJSONSchema() string {
-	return `{
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "reviewer": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "agent": {"type": "string"}
-      },
-      "required": ["agent"]
-    },
-    "verdict": {"type": "string"},
-    "findings": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {"type": "string"},
-          "severity": {"type": "string", "enum": ["high", "medium", "low", "critical"]},
-          "confidence": {"type": "string"},
-          "category": {"type": "string"},
-          "claim": {"type": "string"},
-          "concrete_harm": {"type": "string"},
-          "minimal_fix": {"type": "string"},
-          "locations": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "path": {"type": "string"},
-                "line_start": {"type": "integer"}
-              },
-              "required": ["path", "line_start"]
-            }
-          }
-        },
-        "required": ["id", "severity", "confidence", "category", "claim", "concrete_harm", "minimal_fix", "locations"]
-      }
-    },
-    "non_findings_under_scope": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "claim": {"type": "string"},
-          "basis": {"type": "string"},
-          "scope": {"type": "string"}
-        },
-        "required": ["claim", "basis", "scope"]
-      }
-    }
-  },
-  "required": ["reviewer", "verdict", "findings", "non_findings_under_scope"]
-}`
+// terminateProcessGroup is the Windows sibling of SIGTERM, a 2 second grace
+// period and SIGKILL to the reviewer's process group: CTRL_BREAK_EVENT to the
+// reviewer's console process group, the same grace period, then the whole job
+// ends. CTRL_BREAK reaches only console processes that share haft's console
+// (ADR-092 G8, Weaker-documented); the job termination reaches every process.
+func terminateProcessGroup(job *winproc.Job, done <-chan error) error {
+	_ = job.Interrupt()
+	select {
+	case err := <-done:
+		return err
+	case <-time.After(2 * time.Second):
+	}
+
+	_ = job.Terminate()
+	return <-done
 }
 
-// BuildReviewerPrompt builds the prompt for the reviewer
-func BuildReviewerPrompt(stored StoredRun, packetPath string) string {
-	modes := strings.Join(stored.Packet.ReviewRequest.Modes, ", ")
-	if modes == "" {
-		modes = "general_review"
+// reviewerShell is the command interpreter that runs reviewer_command.
+func reviewerShell() string {
+	if shell := os.Getenv("ComSpec"); shell != "" {
+		return shell
 	}
-	return strings.Join([]string{
-		"# Haft Overseer Review",
-		"",
-		"You are an advisory reviewer. Return JSON matching `overseer.review_result.v1`.",
-		"Do not approve, merge, deploy, decide, commission, or rebaseline.",
-		"Only report concrete findings grounded in the packet/code. Leave style preferences out.",
-		"Read the packet JSON first; do not inspect unrelated files unless the packet explicitly requires fetch-on-demand.",
-		"Return exactly one final JSON object. Do not emit progress JSON as a final answer.",
-		"",
-		"Required output shape:",
-		"",
-		"```json",
-		`{"reviewer":{"agent":"..."},"verdict":"findings_recorded","findings":[{"id":"ofind-...","severity":"high|medium|low","confidence":"high|medium|low","category":"invariant_conformance","claim":"...","concrete_harm":"...","locations":[{"path":"...","line_start":1}],"minimal_fix":"..."}],"non_findings_under_scope":[]}`,
-		"```",
-		"",
-		"Packet ID: " + stored.Packet.PacketID,
-		"Packet JSON path: " + packetPath,
-		"Run ID: " + stored.Run.ReviewRunID,
-		"Review modes: " + modes,
-	}, "\n")
+	return "cmd.exe"
 }
 
-// readReviewerResult reads the reviewer result from file or stdout
-func readReviewerResult(path string, stdout string) (ReviewResultInput, error) {
-	data, err := os.ReadFile(path)
-	if os.IsNotExist(err) && strings.TrimSpace(stdout) != "" {
-		data = []byte(stdout)
-		err = nil
-	}
-	if err != nil {
-		return ReviewResultInput{}, fmt.Errorf("read reviewer result: %w", err)
-	}
-
-	var input ReviewResultInput
-	if err := json.Unmarshal(data, &input); err != nil {
-		return ReviewResultInput{}, fmt.Errorf("decode reviewer result JSON: %w", err)
-	}
-	return input, nil
-}
-
-// reviewerForConfig updates the reviewer with config values
-func reviewerForConfig(config Config, reviewer Reviewer) Reviewer {
-	agent := strings.TrimSpace(reviewer.Agent)
-	if agent == "" {
-		agent = strings.TrimSpace(config.ReviewerAgent)
-	}
-	if agent == "" {
-		agent = "command"
-	}
-	reviewer.Agent = agent
-	reviewer.ModelOrRuntime = firstNonEmpty(reviewer.ModelOrRuntime, "configured_command")
-	reviewer.SessionRelationToAuthor = firstNonEmpty(reviewer.SessionRelationToAuthor, "independent_review_session")
-	return reviewer
+// reviewerShellCommandLine passes command to the shell unchanged: /s /c
+// "<command>" makes cmd.exe remove only the outer quotes, so the command keeps
+// its own quoting (exec.Cmd's argument escaping is not the one cmd.exe reads).
+// /d skips AutoRun commands from the registry.
+func reviewerShellCommandLine(shell, command string) string {
+	return syscall.EscapeArg(shell) + ` /d /s /c "` + command + `"`
 }

@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/m0n0x41d/haft/internal/core/app"
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func invoke(t *testing.T, args []string, input string) (int, map[string]any, string) {
@@ -209,7 +210,7 @@ func TestServeSelectsExplicitLegacyProfile(t *testing.T) {
 // Exercise the actual OS entrypoint, stdout framing and persistent subprocesses,
 // rather than proving parity only through the in-process helpers.
 func TestActualBinaryCLIMCPAndLocalInit(t *testing.T) {
-	binary := filepath.Join(t.TempDir(), "haft10")
+	binary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	build := exec.Command("go", "build", "-o", binary, ".")
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatal(err, string(out))

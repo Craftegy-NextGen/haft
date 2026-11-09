@@ -19,6 +19,7 @@ import (
 	"github.com/m0n0x41d/haft/internal/core/code"
 	"github.com/m0n0x41d/haft/internal/core/delivery"
 	"github.com/m0n0x41d/haft/internal/core/store"
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 // Build the real entrypoint so the CLI leg uses its public decoder, validator
@@ -29,7 +30,7 @@ func t01arCLI(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	binary := filepath.Join(t.TempDir(), "haft10")
+	binary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	cmd := exec.Command("go", "build", "-o", binary, "./cmd/haft10")
 	cmd.Dir = root
 	output, err := cmd.CombinedOutput()

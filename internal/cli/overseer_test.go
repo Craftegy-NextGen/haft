@@ -802,7 +802,7 @@ func TestRunOverseerHookRunsConfiguredReviewer(t *testing.T) {
 	config.LLMReview = "on"
 	config.ReviewOnHook = true
 	config.ReviewerAgent = "command"
-	config.ReviewerCommand = `printf '%s' '{"findings":[{"id":"ofind-hook","severity":"high","confidence":"high","claim":"Hook reviewer found a governance violation.","concrete_harm":"The authoring agent could miss the failed review."}]}' > "$HAFT_OVERSEER_RESULT_FILE"`
+	config.ReviewerCommand = reviewerWritingResult(t, `{"findings":[{"id":"ofind-hook","severity":"high","confidence":"high","claim":"Hook reviewer found a governance violation.","concrete_harm":"The authoring agent could miss the failed review."}]}`)
 	if err := overseer.SaveConfig(fixture.root, config); err != nil {
 		t.Fatalf("SaveConfig returned error: %v", err)
 	}
@@ -854,7 +854,7 @@ func TestRunOverseerHookAsyncSchedulesConfiguredReviewer(t *testing.T) {
 	config.LLMReview = "on"
 	config.ReviewOnHook = true
 	config.ReviewerAgent = "command"
-	config.ReviewerCommand = `printf '%s' '{"findings":[{"id":"ofind-hook","severity":"high","confidence":"high","claim":"Hook reviewer found a governance violation.","concrete_harm":"The authoring agent could miss the failed review."}]}' > "$HAFT_OVERSEER_RESULT_FILE"`
+	config.ReviewerCommand = reviewerWritingResult(t, `{"findings":[{"id":"ofind-hook","severity":"high","confidence":"high","claim":"Hook reviewer found a governance violation.","concrete_harm":"The authoring agent could miss the failed review."}]}`)
 	if err := overseer.SaveConfig(fixture.root, config); err != nil {
 		t.Fatalf("SaveConfig returned error: %v", err)
 	}
@@ -927,7 +927,7 @@ func TestRunOverseerDaemonLoopProcessesQueuedReviewJob(t *testing.T) {
 	config.LLMReview = "on"
 	config.ReviewOnHook = true
 	config.ReviewerAgent = "command"
-	config.ReviewerCommand = `printf '%s' '{"findings":[{"id":"ofind-daemon","severity":"high","confidence":"high","claim":"Daemon reviewer found a governance violation.","concrete_harm":"The authoring agent could miss the queued review."}]}' > "$HAFT_OVERSEER_RESULT_FILE"`
+	config.ReviewerCommand = reviewerWritingResult(t, `{"findings":[{"id":"ofind-daemon","severity":"high","confidence":"high","claim":"Daemon reviewer found a governance violation.","concrete_harm":"The authoring agent could miss the queued review."}]}`)
 	if err := overseer.SaveConfig(fixture.root, config); err != nil {
 		t.Fatalf("SaveConfig returned error: %v", err)
 	}

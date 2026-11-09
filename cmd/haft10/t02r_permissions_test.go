@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 // Run the installed command in a child shell so its umask cannot affect the
@@ -13,7 +15,7 @@ func TestT02RActualBinaryKeepsPrivateCreationAndExistingModes(t *testing.T) {
 	if _, err := os.Stat("/bin/sh"); err != nil {
 		t.Skip("a POSIX child shell is unavailable")
 	}
-	binary := filepath.Join(t.TempDir(), "haft10")
+	binary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	build := exec.Command("go", "build", "-o", binary, ".")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatal(err, string(output))

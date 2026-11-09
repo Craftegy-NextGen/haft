@@ -1,5 +1,3 @@
-//go:build !windows
-
 package main
 
 import (
@@ -38,7 +36,7 @@ func (app application) withRaceSharedFixtureDirectory() (
 	if !supported {
 		return app, func() {}, nil
 	}
-	root, err := os.MkdirTemp("", raceSharedFixtureDirectoryPrefix)
+	root, err := createFixtureDirectory("", raceSharedFixtureDirectoryPrefix)
 	if err != nil {
 		return application{}, nil, fmt.Errorf(
 			"create race shared fixture directory: %w",

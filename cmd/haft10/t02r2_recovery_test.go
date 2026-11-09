@@ -11,10 +11,12 @@ import (
 	"strings"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestT02R2ActualCLIRecoverySurvivesLongPaths(t *testing.T) {
-	binary := filepath.Join(t.TempDir(), "haft10")
+	binary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	build := exec.Command("go", "build", "-o", binary, ".")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatal(err, string(output))
