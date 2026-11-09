@@ -13,6 +13,7 @@ import (
 	profiledeclarationpreparationsqlite "github.com/m0n0x41d/haft/internal/profiledeclarationpreparation/sqlite"
 	"github.com/m0n0x41d/haft/internal/profiledetector"
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+	"github.com/m0n0x41d/haft/internal/strictclock"
 )
 
 const testProfileWorkInputSchema = "haft.profile-onboarding.work-input/v1"
@@ -90,7 +91,7 @@ func prepareV3ProfileDeclaration(
 		root.String(),
 		input,
 		policy,
-		func() time.Time { return time.Now().UTC().Round(0) },
+		strictclock.Strict(func() time.Time { return time.Now().UTC().Round(0) }),
 		func(context.Context) error { return nil },
 	)
 	if err != nil {

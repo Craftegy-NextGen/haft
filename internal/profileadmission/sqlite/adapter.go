@@ -10,6 +10,7 @@ import (
 	kerneldb "github.com/m0n0x41d/haft/db"
 	profileauthoritysqlite "github.com/m0n0x41d/haft/internal/profileauthority/sqlite"
 	"github.com/m0n0x41d/haft/internal/sqlitetransaction"
+	"github.com/m0n0x41d/haft/internal/strictclock"
 )
 
 type transactionStarter interface {
@@ -104,7 +105,7 @@ func newAdapter(database *sql.DB) (adapter, error) {
 		starter:       canonicalTransactionStarter{},
 		finisher:      canonicalTransactionFinisher{},
 		authorityGate: authorityStore,
-		now:           time.Now,
+		now:           strictclock.Strict(time.Now),
 	}, nil
 }
 
