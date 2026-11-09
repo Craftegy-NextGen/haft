@@ -25,6 +25,8 @@ use std::time::{Duration, Instant};
 use std::os::unix::fs::PermissionsExt;
 #[cfg(unix)]
 use std::os::unix::net::{UnixListener, UnixStream};
+#[cfg(windows)]
+use uds_windows::{UnixListener, UnixStream};
 
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
@@ -308,7 +310,7 @@ fn run_socket(args: &Args, socket: &Path) -> Result<()> {
     Ok(())
 }
 
-#[cfg(not(unix))]
+#[cfg(not(any(unix, windows)))]
 fn run_socket(_args: &Args, _socket: &Path) -> Result<()> {
     Err(anyhow!(
         "socket server mode is only supported on Unix platforms"
@@ -401,6 +403,166 @@ fn mark_activity(last_activity: &Arc<Mutex<Instant>>) {
 }
 
 #[cfg(unix)]
+fn should_exit_idle(
+    active_requests: &Arc<AtomicUsize>,
+    last_activity: &Arc<Mutex<Instant>>,
+    idle_timeout: Duration,
+) -> bool {
+    if idle_timeout.is_zero() || active_requests.load(Ordering::SeqCst) > 0 {
+        return false;
+    }
+    last_activity
+        .lock()
+        .map(|last| last.elapsed() >= idle_timeout)
+        .unwrap_or(false)
+}
+
+// ---- Windows socket server (AF_UNIX through uds_windows, ADR-095) ----
+//
+// Same protocol and lifecycle as the Unix server above. The socket file lives in
+// a directory the Go side makes owner-only, so no chmod is done here. The
+// connection handling mirrors the Unix functions because their types are named
+// per platform; keeping the Unix block untouched is deliberate.
+
+#[cfg(windows)]
+fn run_socket(args: &Args, socket: &Path) -> Result<()> {
+    let embedder = Embedder::load(args).context("load embedding daemon")?;
+    let handshake = Handshake {
+        ready: true,
+        model: args.model.clone(),
+        dim: embedder.dim,
+    };
+
+    if socket.exists() {
+        std::fs::remove_file(socket)
+            .with_context(|| format!("remove stale socket {}", socket.display()))?;
+    }
+    let listener =
+        UnixListener::bind(socket).with_context(|| format!("bind socket {}", socket.display()))?;
+    listener
+        .set_nonblocking(true)
+        .context("set socket nonblocking")?;
+
+    let embedder = Arc::new(Mutex::new(embedder));
+    let active_requests = Arc::new(AtomicUsize::new(0));
+    let last_activity = Arc::new(Mutex::new(Instant::now()));
+    let idle_timeout = Duration::from_secs(args.idle_timeout_secs);
+
+    loop {
+        match listener.accept() {
+            Ok((stream, _addr)) => {
+                stream
+                    .set_nonblocking(false)
+                    .context("set client socket blocking")?;
+                mark_activity(&last_activity);
+                spawn_client(
+                    stream,
+                    embedder.clone(),
+                    handshake.clone(),
+                    active_requests.clone(),
+                    last_activity.clone(),
+                );
+            }
+            Err(err) if err.kind() == io::ErrorKind::WouldBlock => {
+                if should_exit_idle(&active_requests, &last_activity, idle_timeout) {
+                    break;
+                }
+                thread::sleep(Duration::from_millis(100));
+            }
+            Err(err) => return Err(err).context("accept socket client"),
+        }
+    }
+
+    let _ = std::fs::remove_file(socket);
+    Ok(())
+}
+
+#[cfg(windows)]
+fn spawn_client(
+    stream: UnixStream,
+    embedder: Arc<Mutex<Embedder>>,
+    handshake: Handshake,
+    active_requests: Arc<AtomicUsize>,
+    last_activity: Arc<Mutex<Instant>>,
+) {
+    thread::spawn(move || {
+        if let Err(err) = handle_client(stream, embedder, handshake, active_requests, last_activity)
+        {
+            eprintln!("haft-embed client error: {err:#}");
+        }
+    });
+}
+
+#[cfg(windows)]
+struct ActiveRequest {
+    active: Arc<AtomicUsize>,
+    last_activity: Arc<Mutex<Instant>>,
+}
+
+#[cfg(windows)]
+impl ActiveRequest {
+    fn begin(active: Arc<AtomicUsize>, last_activity: Arc<Mutex<Instant>>) -> Self {
+        active.fetch_add(1, Ordering::SeqCst);
+        Self {
+            active,
+            last_activity,
+        }
+    }
+}
+
+#[cfg(windows)]
+impl Drop for ActiveRequest {
+    fn drop(&mut self) {
+        self.active.fetch_sub(1, Ordering::SeqCst);
+        mark_activity(&self.last_activity);
+    }
+}
+
+#[cfg(windows)]
+fn handle_client(
+    stream: UnixStream,
+    embedder: Arc<Mutex<Embedder>>,
+    handshake: Handshake,
+    active_requests: Arc<AtomicUsize>,
+    last_activity: Arc<Mutex<Instant>>,
+) -> Result<()> {
+    let reader_stream = stream.try_clone().context("clone socket stream")?;
+    let mut reader = BufReader::new(reader_stream);
+    let mut out = stream;
+
+    writeln!(out, "{}", serde_json::to_string(&handshake)?)?;
+    out.flush()?;
+
+    loop {
+        let mut line = String::new();
+        let bytes = reader.read_line(&mut line).context("read socket request")?;
+        if bytes == 0 {
+            return Ok(());
+        }
+        if line.trim().is_empty() {
+            continue;
+        }
+        mark_activity(&last_activity);
+        let _active_request = ActiveRequest::begin(active_requests.clone(), last_activity.clone());
+        let response = {
+            let mut guard = embedder
+                .lock()
+                .map_err(|_| anyhow!("embedding model lock poisoned"))?;
+            handle_line(&mut guard, &line)
+        };
+        writeln!(out, "{}", serde_json::to_string(&response)?)?;
+        out.flush()?;
+    }
+}
+
+#[cfg(windows)]
+fn mark_activity(last_activity: &Arc<Mutex<Instant>>) {
+    if let Ok(mut last) = last_activity.lock() {
+        *last = Instant::now();
+    }
+}
+
+#[cfg(windows)]
 fn should_exit_idle(
     active_requests: &Arc<AtomicUsize>,
     last_activity: &Arc<Mutex<Instant>>,

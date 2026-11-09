@@ -103,3 +103,28 @@ to run it. They take the first `bash` on `PATH`; when there is none, they look f
 Windows installation that holds the `git` on `PATH`. The `bash.exe` of the Windows Subsystem for Linux
 (`C:\Windows\System32\bash.exe`) is skipped. When no bash is found, the check still completes and reports a
 `token_gate_failed` diagnostic that says so; put the `bin` folder of Git for Windows on `PATH` to fix it.
+
+## Building the embedding sidecar (haft-embed) on Windows
+
+The semantic recall sidecar is a Rust program (`embed-sidecar`). The prebuilt static ONNX Runtime library that the
+`ort` crate downloads by default needs C++ standard library symbols that older Visual Studio toolsets (for example
+MSVC 14.40) do not have, so a plain `cargo build` fails at the link step with `LNK1120`. Microsoft's own ONNX Runtime
+release links as an import library and needs none of them. No Cargo feature change is needed, only environment
+variables for the build.
+
+1. Download `onnxruntime-win-x64-<version>.zip` from the ONNX Runtime GitHub releases (version 1.24.x; 1.24.4 was
+   verified). Check its SHA-256 against the digest GitHub shows for the asset, and unpack it into a new folder.
+2. Build with the variables set only for that command:
+
+   ```
+   ORT_LIB_LOCATION=<unpacked folder>\lib ORT_PREFER_DYNAMIC_LINK=1 cargo build --manifest-path embed-sidecar/Cargo.toml
+   ```
+
+3. Copy `onnxruntime.dll` and `onnxruntime_providers_shared.dll` from that `lib` folder next to `haft-embed.exe`. Putting
+   the folder on `PATH` is not enough: the Windows system folder holds a stub `onnxruntime.dll` that the loader finds
+   first.
+
+The shared sidecar listens on a Unix domain socket under `%LOCALAPPDATA%\haft\embed` (Windows 10 version 1803 or
+later). A Windows socket path may be at most 107 bytes, so a very long `%LOCALAPPDATA%` makes haft fall back to the
+per-process stdio sidecar. The first start downloads the embedding model (roughly 300 to 440 MB depending on the
+model) into the cache directory.
