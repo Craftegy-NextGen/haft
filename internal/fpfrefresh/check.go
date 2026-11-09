@@ -84,7 +84,7 @@ func CheckCandidate(
 	if candidateRef == "" {
 		candidateRef = DefaultCandidateRef
 	}
-	if err := os.MkdirAll(request.Layout.StateDirectory, 0o700); err != nil {
+	if err := createStateDirectory(request.Layout.StateDirectory); err != nil {
 		return CandidateCheckResult{}, fmt.Errorf("create FPF refresh state directory: %w", err)
 	}
 	recovery, err := InspectRecovery(request.Layout.Receipt)

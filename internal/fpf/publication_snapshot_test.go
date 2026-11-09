@@ -119,8 +119,8 @@ func TestLoadPublicationSnapshotReadsOneExactPublicationBasis(t *testing.T) {
 	if snapshot.Revision() != wantRevision {
 		t.Fatalf("resolved revision = %q, want %q", snapshot.Revision(), wantRevision)
 	}
-	if snapshot.Readme().Path != filepath.Clean(readmePath) ||
-		snapshot.Spec().Path != filepath.Clean(specPath) {
+	if snapshot.Readme().Path != cleanSourcePath(readmePath) ||
+		snapshot.Spec().Path != cleanSourcePath(specPath) {
 		t.Fatalf(
 			"snapshot paths = %q, %q; want cleaned input paths",
 			snapshot.Readme().Path,

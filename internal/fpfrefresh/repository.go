@@ -392,7 +392,7 @@ func acquireRepositoryVerificationOperationLock(
 	}
 	created := false
 	if _, err := os.Lstat(layout.StateDirectory); errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(layout.StateDirectory, 0o700); err != nil {
+		if err := createStateDirectory(layout.StateDirectory); err != nil {
 			return nil, fmt.Errorf("create private FPF refresh state directory: %w", err)
 		}
 		created = true

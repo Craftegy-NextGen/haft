@@ -658,7 +658,7 @@ func buildIndexerExecutableWithOperations(
 		}
 		return operations.removeAll(directory)
 	}
-	path := filepath.Join(directory, "haft-fpf-indexer")
+	path := indexerExecutablePath(filepath.Join(directory, "haft-fpf-indexer"))
 	output, err := operations.build(ctx, root, path)
 	if err != nil {
 		buildErr := fmt.Errorf(
