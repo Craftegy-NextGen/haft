@@ -2,20 +2,26 @@
 
 package projectledgermigration
 
-import "os"
+import (
+	"os"
+
+	"github.com/m0n0x41d/haft/internal/winfs"
+)
 
 // serveSnapshotNotPrivate is the Windows sibling of the Unix regular 0600 check
 // extracted from assertSecureServeSnapshot (serve_snapshot_mode_unix_test.go).
-// It asserts exactly what the production predicate insecureSnapshotFileMode
-// checks on Windows (snapshot_mode_windows.go; ADR-092 fact 3 and O2): a
-// regular file whose Go mode is the image 0666 of the snapshot's
-// os.Chmod(path, 0o600), that is, not read-only.
-//
-// It does not check owner and DACL: SQLite's VACUUM INTO creates the snapshot
-// with the DACL inherited from the ledger directory, so winfs.CheckPrivate
-// rejects it ("DACL is not protected from inheritance"). That is a product gap
-// against ADR-092 O2 (2a), not a test fault; the check tightens to
-// winfs.CheckPrivate once the snapshot is created private.
+// The serve-migration snapshot is created owner-only (ADR-092 O2, 2a;
+// reserveSnapshotPartialPath), so the assertion is winfs.CheckPrivate on a
+// no-follow handle: the token user owns it, the DACL is protected and
+// owner-only, and it has one link.
 func serveSnapshotNotPrivate(info os.FileInfo, path string) bool {
-	return !info.Mode().IsRegular() || info.Mode().Perm() != 0o666
+	if !info.Mode().IsRegular() {
+		return true
+	}
+	file, err := winfs.OpenFile(path, os.O_RDONLY, winfs.Private)
+	if err != nil {
+		return true
+	}
+	defer file.Close()
+	return winfs.CheckPrivate(file) != nil
 }

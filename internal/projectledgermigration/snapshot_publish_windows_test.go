@@ -53,20 +53,25 @@ func TestPublishServeMigrationSnapshotMovesIntoAbsentName(t *testing.T) {
 	}
 }
 
-// The published snapshot passes requireSecureSnapshotFile after the
-// os.Chmod(0o600) of createServeMigrationSnapshot, and a read-only snapshot
-// (not the image of 0600 on Windows) does not.
+// The snapshot passes requireSecureSnapshotFile when it is the owner-only file
+// that createServeMigrationSnapshot builds (private partial file, then
+// os.Chmod(0o600)). A snapshot with the inherited DACL of its directory (what
+// VACUUM INTO creates by itself) and a read-only snapshot (not the image of
+// 0600 on Windows) do not (ADR-092 O2, 2a).
 func TestRequireSecureSnapshotFileOnWindows(t *testing.T) {
 	directory := t.TempDir()
 	path := filepath.Join(directory, "snapshot.bak")
-	if err := os.WriteFile(path, []byte("snapshot"), 0o644); err != nil {
+	if err := reserveSnapshotPartialPath(path); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("snapshot"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.Chmod(path, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := requireSecureSnapshotFile(path); err != nil {
-		t.Fatalf("snapshot after chmod 0600 was rejected: %v", err)
+		t.Fatalf("private snapshot after chmod 0600 was rejected: %v", err)
 	}
 	if err := os.Chmod(path, 0o400); err != nil {
 		t.Fatal(err)
@@ -74,6 +79,17 @@ func TestRequireSecureSnapshotFileOnWindows(t *testing.T) {
 	t.Cleanup(func() { _ = os.Chmod(path, 0o600) })
 	if err := requireSecureSnapshotFile(path); err == nil {
 		t.Fatal("read-only snapshot was accepted")
+	}
+
+	inherited := filepath.Join(directory, "inherited.bak")
+	if err := os.WriteFile(inherited, []byte("snapshot"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(inherited, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := requireSecureSnapshotFile(inherited); err == nil {
+		t.Fatal("snapshot with an inherited DACL was accepted")
 	}
 }
 

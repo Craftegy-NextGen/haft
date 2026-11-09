@@ -39,7 +39,7 @@ func createServeMigrationSnapshot(
 		afterSchema,
 		at,
 	)
-	if err := requireSnapshotPathAbsent(partialPath); err != nil {
+	if err := reserveSnapshotPartialPath(partialPath); err != nil {
 		return serveMigrationSnapshot{}, err
 	}
 	if err := requireSnapshotPathAbsent(finalPath); err != nil {
@@ -239,7 +239,7 @@ func requireSecureSnapshotFile(path string) error {
 	if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
 		return fmt.Errorf("serve migration snapshot is not a regular file")
 	}
-	if insecureSnapshotFileMode(info) {
+	if insecureSnapshotFileMode(info, path) {
 		return fmt.Errorf(
 			"serve migration snapshot mode = %04o, want 0600",
 			info.Mode().Perm(),
