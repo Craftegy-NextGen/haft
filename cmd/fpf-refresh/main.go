@@ -164,10 +164,10 @@ func runCheck(
 		},
 		ToolRevision: toolRevision,
 		TokenGate:    &tokenGate,
-		TokenGateVerifier: fpfrefresh.ExecutableCandidateTokenGate{
+		TokenGateVerifier: tokenGateVerifier(fpfrefresh.ExecutableCandidateTokenGate{
 			ShellPath:  "/bin/bash",
 			ScriptPath: filepath.Join(layout.Root, "scripts", "fpf_query_token_gate.sh"),
-		},
+		}),
 	})
 	defer func() {
 		exitCode, resultErr = joinCleanupResult(
