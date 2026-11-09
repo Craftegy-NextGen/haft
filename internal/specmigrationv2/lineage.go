@@ -797,5 +797,3 @@ func resolvedOutsideCarrierSortKey(binding ResolvedOutsideCarrierBinding) string
 		binding.carrier.String() + "\x00" +
 		binding.digest.String()
 }
-
-

@@ -532,5 +532,3 @@ func validSoftwareSectionKind(value string) bool {
 	_, exists := softwareSectionKinds[value]
 	return exists
 }
-
-

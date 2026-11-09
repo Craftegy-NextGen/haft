@@ -358,5 +358,3 @@ func sameMigrationReviewProtocolPins(
 		left.boundedContextRef == right.boundedContextRef &&
 		left.effectRuleRef == right.effectRuleRef
 }
-
-

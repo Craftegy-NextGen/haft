@@ -176,5 +176,3 @@ func decodeLifecycleIntent(
 	}
 	return intent, nil
 }
-
-

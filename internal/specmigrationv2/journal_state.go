@@ -1,5 +1,3 @@
-//go:build darwin || linux
-
 package specmigrationv2
 
 import (
@@ -311,5 +309,3 @@ func inspectCurrentMigrationTarget(
 	}
 	return CurrentMigrationTargetEvolved
 }
-
-

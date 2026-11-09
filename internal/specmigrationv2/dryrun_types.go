@@ -698,5 +698,3 @@ func cloneOutsideCarrierSnapshots(snapshots OutsideCarrierSnapshots) OutsideCarr
 	}
 	return OutsideCarrierSnapshots{values: values}
 }
-
-

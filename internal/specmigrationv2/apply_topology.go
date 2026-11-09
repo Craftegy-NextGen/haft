@@ -1,5 +1,3 @@
-//go:build darwin || linux
-
 package specmigrationv2
 
 import (
@@ -213,5 +211,3 @@ func archiveDirectoryChain(root string, archiveParent string) ([]string, error) 
 	}
 	return chain, nil
 }
-
-

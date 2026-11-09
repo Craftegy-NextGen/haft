@@ -5,88 +5,72 @@ package specmigrationv2
 import (
 	"fmt"
 	"os"
+
+	"github.com/m0n0x41d/haft/internal/winfs"
 )
 
-// openExclusiveNoFollow creates a file exclusively (fails if exists)
+// This file is the Windows counterpart of apply_fs_supported.go,
+// apply_fs_linux.go and apply_fs_darwin.go (ADR-091 R-a). The Unix calls map to
+// internal/winfs (ADR-092):
+//
+//   - open(O_CREAT|O_EXCL|O_NOFOLLOW): winfs.OpenFile with os.O_CREATE|os.O_EXCL,
+//     an exclusive create that never follows a link at the final component (G1,
+//     G3); mode 0600 maps to winfs.Private (G6), any other mode to
+//     winfs.Inherited.
+//   - open(O_RDONLY|O_NOFOLLOW) and the regular-file fstat check: winfs.OpenFile
+//     and winfs.Fstat. A symbolic link or junction is opened as the link itself,
+//     so it fails the regular-file check instead of being followed.
+//   - fsync of a directory opened with O_DIRECTORY|O_NOFOLLOW: winfs.OpenDir and
+//     Dir.Sync (G7, ADR-092 O3).
+//   - stat and the st_dev comparison: winfs.PathIdentity and FileID.SameVolume,
+//     the volume serial number, so carriers on different drives are detected (O5).
+//   - renameat2(RENAME_NOREPLACE) and renamex_np(RENAME_EXCL): winfs.RenameNoReplace
+//     (G4).
+//
+// openDirectoryNoFollow and adoptOpenedFile have no Windows counterpart: the
+// only Unix callers are the directory lock and the descriptor adoption of
+// apply_fs_supported.go, and the lock is apply_lock_windows.go.
+
 func openExclusiveNoFollow(path string, mode os.FileMode) (*os.File, error) {
-	// Windows equivalent: O_CREAT | O_EXCL without O_NOFOLLOW
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
+	protection := winfs.Inherited
+	if mode.Perm()&0o077 == 0 {
+		protection = winfs.Private
+	}
+	file, err := winfs.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, protection)
 	if err != nil {
 		return nil, fmt.Errorf("create exclusive migration file: %w", err)
 	}
-	return f, nil
+	return file, nil
 }
 
-// openReadOnlyNoFollow opens a file read-only without following symlinks
 func openReadOnlyNoFollow(path string) (*os.File, error) {
-	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	file, err := winfs.OpenFile(path, os.O_RDONLY, winfs.Inherited)
 	if err != nil {
 		return nil, fmt.Errorf("open migration file without following symlinks: %w", err)
 	}
-	info, err := f.Stat()
+	info, err := winfs.Fstat(file)
 	if err != nil {
-		_ = f.Close()
+		_ = file.Close()
 		return nil, fmt.Errorf("inspect migration file: %w", err)
 	}
-	if !info.Mode().IsRegular() {
-		_ = f.Close()
+	if !info.IsRegular() {
+		_ = file.Close()
 		return nil, fmt.Errorf("migration carrier %s is not a regular file", path)
 	}
-	return f, nil
-}
-
-// openDirectoryNoFollow opens a directory without following symlinks
-func openDirectoryNoFollow(path string) (*os.File, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return nil, fmt.Errorf("open migration directory: %w", err)
-	}
-	if !info.IsDir() {
-		return nil, fmt.Errorf("migration carrier %s is not a directory", path)
-	}
-	// On Windows, directories can be opened with file APIs
-	f, err := os.OpenFile(path, os.O_RDONLY, 0)
-	if err != nil {
-		return nil, fmt.Errorf("open migration directory: %w", err)
-	}
-	return f, nil
-}
-
-func adoptOpenedFile(fd int, path string) (*os.File, error) {
-	return os.NewFile(uintptr(fd), path), nil
-}
-
-func adoptOpenedFileWith(
-	fd int,
-	path string,
-	newFile func(uintptr, string) *os.File,
-	closeDescriptor func(int) error,
-) (*os.File, error) {
-	if fd < 0 {
-		return nil, fmt.Errorf("adopt opened migration descriptor %d: descriptor is negative", fd)
-	}
-	fileDescriptor := uintptr(fd)
-	file := newFile(fileDescriptor, path)
-	if file != nil {
-		return file, nil
-	}
-	// File is nil, close the descriptor
-	if closeErr := closeDescriptor(fd); closeErr != nil {
-		return nil, fmt.Errorf("adopt opened migration descriptor %d: os.NewFile returned nil and close failed: %w", fd, closeErr)
-	}
-	return nil, fmt.Errorf("adopt opened migration descriptor %d: os.NewFile returned nil", fd)
+	return file, nil
 }
 
 func syncDirectoryNoFollow(path string) error {
-	// Windows equivalent: flush directory metadata
-	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	directory, err := winfs.OpenDir(path)
 	if err != nil {
-		return fmt.Errorf("open directory for sync: %w", err)
+		return fmt.Errorf("open migration directory without following symlinks: %w", err)
 	}
-	err = f.Sync()
-	closeErr := f.Close()
-	if err != nil {
-		return fmt.Errorf("sync directory: %w", err)
+	// A volume that refuses the flush reports winfs.SyncSkipped, the documented
+	// weaker fallback of ADR-092 O3; winfs counts it (SkippedDirectorySyncs).
+	_, syncErr := directory.Sync()
+	closeErr := directory.Close()
+	if syncErr != nil {
+		return syncErr
 	}
 	return closeErr
 }
@@ -95,21 +79,25 @@ func sameFilesystem(paths []string) error {
 	if len(paths) < 2 {
 		return nil
 	}
-	// On Windows, we can compare the drive letter
-	firstDrive := ""
-	firstPath := paths[0]
-	if len(firstPath) >= 2 && firstPath[1] == ':' {
-		firstDrive = firstPath[:2]
+	first, err := winfs.PathIdentity(paths[0])
+	if err != nil {
+		return fmt.Errorf("inspect migration filesystem topology: %w", err)
 	}
-	for _, p := range paths[1:] {
-		// Simple drive check for Windows
-		if len(p) >= 2 && p[1] == ':' {
-			drive := p[:2]
-			if drive != firstDrive {
-				// Different drives - allow for now (full impl would use GetVolumeInformation)
-				continue
-			}
+	for _, path := range paths[1:] {
+		current, err := winfs.PathIdentity(path)
+		if err != nil {
+			return fmt.Errorf("inspect migration filesystem topology: %w", err)
 		}
+		if !current.SameVolume(first) {
+			return fmt.Errorf("migration carriers cross filesystem devices")
+		}
+	}
+	return nil
+}
+
+func renameNoReplace(source string, destination string) error {
+	if err := winfs.RenameNoReplace(source, destination); err != nil {
+		return fmt.Errorf("install migration carrier without replacement: %w", err)
 	}
 	return nil
 }

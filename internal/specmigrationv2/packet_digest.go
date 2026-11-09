@@ -297,5 +297,3 @@ func addSpanDigest(writer packetDigestWriter, span ExactByteSpan) {
 	writer.add(strconv.FormatUint(span.Length().Value(), 10))
 	writer.add(span.Digest().String())
 }
-
-

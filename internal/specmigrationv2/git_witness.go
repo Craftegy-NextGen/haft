@@ -127,7 +127,7 @@ func resolveRepositoryRoot(
 	if err != nil {
 		return ApplyProjectRoot{}, err
 	}
-	rootText := strings.TrimSuffix(string(observed), "\n")
+	rootText := hostPathFromGit(strings.TrimSuffix(string(observed), "\n"))
 	root, err := NewApplyProjectRoot(rootText)
 	if err != nil {
 		return ApplyProjectRoot{}, err
@@ -624,5 +624,3 @@ func witnessHeadFromOrigin(origin SourceEditionOrigin) GitCommitOID {
 		return GitCommitOID{}
 	}
 }
-
-

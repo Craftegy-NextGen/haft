@@ -438,5 +438,3 @@ func validLifecycleOperation(operation LifecycleOperation) bool {
 		operation == LifecycleRebaseline ||
 		operation == LifecycleActivate
 }
-
-

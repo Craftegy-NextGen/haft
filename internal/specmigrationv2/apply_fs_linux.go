@@ -21,5 +21,3 @@ func renameNoReplace(source string, destination string) error {
 	}
 	return nil
 }
-
-

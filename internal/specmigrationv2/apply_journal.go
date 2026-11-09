@@ -728,5 +728,3 @@ func parseCanonicalEffectTime(raw string) (time.Time, error) {
 	}
 	return value, nil
 }
-
-

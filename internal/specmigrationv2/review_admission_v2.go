@@ -914,5 +914,3 @@ func decodeMigrationReviewAcceptanceContent(
 	}
 	return dto, nil
 }
-
-

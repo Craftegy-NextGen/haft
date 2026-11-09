@@ -1,5 +1,3 @@
-//go:build !windows
-
 package specmigrationv2
 
 import "testing"
