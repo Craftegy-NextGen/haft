@@ -1,5 +1,3 @@
-//go:build !windows
-
 package fpfrefresh
 
 import (
@@ -37,7 +35,7 @@ func (builder ExecutableIndexBuilder) BuildIndex(
 	if err != nil {
 		return fmt.Errorf("inspect indexer executable: %w", err)
 	}
-	if !info.Mode().IsRegular() || info.Mode().Perm()&0o111 == 0 {
+	if !info.Mode().IsRegular() || executableModeMissing(builder.ExecutablePath, info) {
 		return fmt.Errorf("indexer executable is not an executable regular file")
 	}
 	if !filepath.IsAbs(builder.SourceRepositoryPath) {

@@ -1,5 +1,3 @@
-//go:build !windows
-
 package fpfrefresh
 
 import (
@@ -102,7 +100,7 @@ func TestPrepareCandidateArtifactBuildsExactVerifiedOwnedCandidate(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if permissions := rootInfo.Mode().Perm(); permissions != 0o700 {
+	if permissions := rootInfo.Mode().Perm(); candidateRootModeNotPrivate(permissions) {
 		t.Fatalf("candidate root permissions = %o, want 700", permissions)
 	}
 

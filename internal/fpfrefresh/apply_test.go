@@ -1,5 +1,3 @@
-//go:build !windows
-
 package fpfrefresh
 
 import (
@@ -606,7 +604,7 @@ func TestRecoveryOperationLockIsConcurrentAndCrashReplaySafe(t *testing.T) {
 	if err != nil {
 		t.Fatalf("operation carrier should survive release for crash-safe replay: %v", err)
 	}
-	if !info.Mode().IsRegular() || info.Mode().Perm() != 0o600 {
+	if !info.Mode().IsRegular() || operationCarrierNotPrivate(carrierPath, info) {
 		t.Fatalf("operation carrier mode = %v, want private regular 0600", info.Mode())
 	}
 	replayedRelease, err := acquireOperationLock(receiptPath)

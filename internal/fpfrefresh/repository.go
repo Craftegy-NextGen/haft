@@ -1,5 +1,3 @@
-//go:build !windows
-
 package fpfrefresh
 
 import (
@@ -408,7 +406,7 @@ func acquireRepositoryVerificationOperationLock(
 	if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
 		return nil, fmt.Errorf("FPF refresh state path is not a real directory")
 	}
-	if created && info.Mode().Perm()&0o077 != 0 {
+	if created && stateDirectoryNotPrivate(info) {
 		return nil, fmt.Errorf("new FPF refresh state directory is not private")
 	}
 	return acquireOperationLock(layout.Receipt)

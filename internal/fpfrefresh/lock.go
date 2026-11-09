@@ -1,5 +1,3 @@
-//go:build !windows
-
 package fpfrefresh
 
 import (
@@ -365,7 +363,7 @@ func WriteIntegrationLock(path string, lock IntegrationLock) error {
 		return fmt.Errorf("replace integration lock: %w", err)
 	}
 	keepTemporary = false
-	directory, err := os.Open(filepath.Dir(cleanPath))
+	directory, err := openDirectoryForSync(filepath.Dir(cleanPath))
 	if err != nil {
 		return fmt.Errorf("open integration lock directory for fsync: %w", err)
 	}

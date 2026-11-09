@@ -1,5 +1,3 @@
-//go:build !windows
-
 package fpfrefresh
 
 import (
@@ -11,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestApplyReceiptCanonicalJSONIsDeterministicAndStrict(t *testing.T) {
@@ -27,15 +27,15 @@ func TestApplyReceiptCanonicalJSONIsDeterministicAndStrict(t *testing.T) {
 		},
 		InitialSourceSHA: strings.Repeat("a", 40),
 		Targets: ReceiptTargets{
-			SourcePath:   "/repo/data/FPF",
-			DatabasePath: "/repo/internal/cli/fpf.db",
-			LockPath:     "/repo/data/haft/fpf-integration.lock.json",
+			SourcePath:   testpath.Abs("/repo/data/FPF"),
+			DatabasePath: testpath.Abs("/repo/internal/cli/fpf.db"),
+			LockPath:     testpath.Abs("/repo/data/haft/fpf-integration.lock.json"),
 		},
 		Artifacts: ReceiptArtifacts{
-			CandidateDatabasePath:         "/repo/.haft/fpf-refresh/candidate-fpf.db",
-			CandidateLockPath:             "/repo/.haft/fpf-refresh/candidate-integration.lock.json",
+			CandidateDatabasePath:         testpath.Abs("/repo/.haft/fpf-refresh/candidate-fpf.db"),
+			CandidateLockPath:             testpath.Abs("/repo/.haft/fpf-refresh/candidate-integration.lock.json"),
 			CandidateLockDigest:           "sha256:" + strings.Repeat("4", 64),
-			PredecessorDatabaseBackupPath: "/repo/.haft/fpf-refresh/predecessor-fpf.db",
+			PredecessorDatabaseBackupPath: testpath.Abs("/repo/.haft/fpf-refresh/predecessor-fpf.db"),
 			PredecessorLock: ReceiptPredecessorLock{
 				Presence: ReceiptLockMissing,
 			},
@@ -67,9 +67,21 @@ func TestApplyReceiptCanonicalJSONIsDeterministicAndStrict(t *testing.T) {
 		strings.Repeat("2", 64) +
 		`"},"initial_source_sha":"` +
 		strings.Repeat("a", 40) +
-		`","targets":{"source_path":"/repo/data/FPF","database_path":"/repo/internal/cli/fpf.db","lock_path":"/repo/data/haft/fpf-integration.lock.json"},"artifacts":{"candidate_database_path":"/repo/.haft/fpf-refresh/candidate-fpf.db","candidate_lock_path":"/repo/.haft/fpf-refresh/candidate-integration.lock.json","candidate_lock_digest":"sha256:` +
+		`","targets":{"source_path":` +
+		receiptTestJSONPath("/repo/data/FPF") +
+		`,"database_path":` +
+		receiptTestJSONPath("/repo/internal/cli/fpf.db") +
+		`,"lock_path":` +
+		receiptTestJSONPath("/repo/data/haft/fpf-integration.lock.json") +
+		`},"artifacts":{"candidate_database_path":` +
+		receiptTestJSONPath("/repo/.haft/fpf-refresh/candidate-fpf.db") +
+		`,"candidate_lock_path":` +
+		receiptTestJSONPath("/repo/.haft/fpf-refresh/candidate-integration.lock.json") +
+		`,"candidate_lock_digest":"sha256:` +
 		strings.Repeat("4", 64) +
-		`","predecessor_database_backup_path":"/repo/.haft/fpf-refresh/predecessor-fpf.db","predecessor_lock":{"presence":"missing"}}}` +
+		`","predecessor_database_backup_path":` +
+		receiptTestJSONPath("/repo/.haft/fpf-refresh/predecessor-fpf.db") +
+		`,"predecessor_lock":{"presence":"missing"}}}` +
 		"\n"
 	if string(first) != want {
 		t.Fatalf("CanonicalJSON() = %q, want %q", first, want)
@@ -101,7 +113,7 @@ func TestApplyReceiptCanonicalJSONIsDeterministicAndStrict(t *testing.T) {
 func TestApplyReceiptTransitionsAreClosedLinearAndIdempotent(t *testing.T) {
 	t.Parallel()
 
-	receipt := newReceiptTestReceipt(t, "/repo")
+	receipt := newReceiptTestReceipt(t, testpath.Abs("/repo"))
 	original, err := receipt.CanonicalJSON()
 	if err != nil {
 		t.Fatalf("CanonicalJSON(): %v", err)
@@ -158,7 +170,7 @@ func TestApplyReceiptTransitionsAreClosedLinearAndIdempotent(t *testing.T) {
 func TestApplyReceiptRecoveryDirectionsAreExactForEveryState(t *testing.T) {
 	t.Parallel()
 
-	receipt := newReceiptTestReceipt(t, "/repo")
+	receipt := newReceiptTestReceipt(t, testpath.Abs("/repo"))
 	states := []struct {
 		state        ReceiptState
 		resumeKinds  []ReceiptRecoveryStepKind
@@ -353,7 +365,7 @@ func TestApplyReceiptPreparedMixedCheckoutHasExactResumeAndRestore(t *testing.T)
 func TestApplyReceiptRestoredIsTerminalAndIdempotent(t *testing.T) {
 	t.Parallel()
 
-	receipt := newReceiptTestReceipt(t, "/repo")
+	receipt := newReceiptTestReceipt(t, testpath.Abs("/repo"))
 	var err error
 	receipt, err = TransitionApplyReceipt(receipt, ReceiptStateSourceApplied)
 	if err != nil {
@@ -393,7 +405,7 @@ func TestApplyReceiptRestoredIsTerminalAndIdempotent(t *testing.T) {
 func TestApplyReceiptRestoreDistinguishesPresentAndFirstEverLock(t *testing.T) {
 	t.Parallel()
 
-	missing := newReceiptTestReceipt(t, "/repo")
+	missing := newReceiptTestReceipt(t, testpath.Abs("/repo"))
 	for _, state := range []ReceiptState{
 		ReceiptStateSourceApplied,
 		ReceiptStateDBApplied,
@@ -421,7 +433,7 @@ func TestApplyReceiptRestoreDistinguishesPresentAndFirstEverLock(t *testing.T) {
 	presentBasis := missing.Basis()
 	presentBasis.Artifacts.PredecessorLock = ReceiptPredecessorLock{
 		Presence:   ReceiptLockPresent,
-		BackupPath: "/repo/.haft/fpf-refresh/predecessor-integration.lock.json",
+		BackupPath: testpath.Abs("/repo/.haft/fpf-refresh/predecessor-integration.lock.json"),
 		Digest:     "sha256:" + strings.Repeat("3", 64),
 	}
 	present, err := NewApplyReceipt(presentBasis)
@@ -469,7 +481,7 @@ func TestReceiptStoreCreatesAdvancesAndReplaysCompleteReceipt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("stat receipt: %v", err)
 	}
-	if got := info.Mode().Perm(); got != 0o600 {
+	if got := info.Mode().Perm(); receiptModeNotPrivate(got) {
 		t.Fatalf("receipt mode = %04o, want 0600", got)
 	}
 	if err := CreateReceipt(path, receipt); !errors.Is(err, ErrReceiptExists) {
@@ -757,7 +769,7 @@ func TestCreateReceiptReusesUnlockedPersistentLockCarrier(t *testing.T) {
 	root := t.TempDir()
 	receipt := newReceiptTestReceipt(t, root)
 	path := filepath.Join(root, "apply-receipt.json")
-	if err := os.WriteFile(path+".lock", nil, 0o600); err != nil {
+	if err := writeReceiptLockCarrier(path); err != nil {
 		t.Fatalf("write unlocked lock carrier: %v", err)
 	}
 
@@ -777,7 +789,7 @@ func TestCreateReceiptReusesUnlockedPersistentLockCarrier(t *testing.T) {
 func TestApplyReceiptRejectsInexactIdentityAndTargetPaths(t *testing.T) {
 	t.Parallel()
 
-	valid := newReceiptTestReceipt(t, "/repo").Basis()
+	valid := newReceiptTestReceipt(t, testpath.Abs("/repo")).Basis()
 	tests := []struct {
 		name   string
 		mutate func(*ReceiptBasis)
@@ -815,7 +827,7 @@ func TestApplyReceiptRejectsInexactIdentityAndTargetPaths(t *testing.T) {
 		{
 			name: "unclean target",
 			mutate: func(basis *ReceiptBasis) {
-				basis.Targets.DatabasePath = "/repo/internal/../internal/cli/fpf.db"
+				basis.Targets.DatabasePath = testpath.Abs("/repo/internal/../internal/cli/fpf.db")
 			},
 		},
 		{
@@ -828,7 +840,7 @@ func TestApplyReceiptRejectsInexactIdentityAndTargetPaths(t *testing.T) {
 			name: "missing lock carries backup",
 			mutate: func(basis *ReceiptBasis) {
 				basis.Artifacts.PredecessorLock.BackupPath =
-					"/repo/.haft/fpf-refresh/impossible-lock-backup.json"
+					testpath.Abs("/repo/.haft/fpf-refresh/impossible-lock-backup.json")
 				basis.Artifacts.PredecessorLock.Digest =
 					"sha256:" + strings.Repeat("3", 64)
 			},
@@ -838,7 +850,7 @@ func TestApplyReceiptRejectsInexactIdentityAndTargetPaths(t *testing.T) {
 			mutate: func(basis *ReceiptBasis) {
 				basis.Artifacts.PredecessorLock = ReceiptPredecessorLock{
 					Presence:   ReceiptLockPresent,
-					BackupPath: "/repo/.haft/fpf-refresh/predecessor-lock.json",
+					BackupPath: testpath.Abs("/repo/.haft/fpf-refresh/predecessor-lock.json"),
 				}
 			},
 		},
@@ -866,7 +878,7 @@ func TestApplyReceiptRejectsInexactIdentityAndTargetPaths(t *testing.T) {
 			name: "artifact is inside source checkout",
 			mutate: func(basis *ReceiptBasis) {
 				basis.Artifacts.CandidateDatabasePath =
-					"/repo/data/FPF/candidate-fpf.db"
+					testpath.Abs("/repo/data/FPF/candidate-fpf.db")
 			},
 		},
 	}
@@ -1062,7 +1074,7 @@ func assertNoReceiptPersistenceDebt(t *testing.T, path string) {
 	if err != nil {
 		t.Fatalf("stat persistent receipt lock carrier: %v", err)
 	}
-	if !lockInfo.Mode().IsRegular() || lockInfo.Mode().Perm() != 0o600 {
+	if !lockInfo.Mode().IsRegular() || receiptLockNotPrivate(path, lockInfo) {
 		t.Fatalf(
 			"receipt lock carrier mode = %v, want private regular 0600",
 			lockInfo.Mode(),
@@ -1084,4 +1096,8 @@ func assertNoReceiptPersistenceDebt(t *testing.T, path string) {
 	if len(stages) != 0 {
 		t.Fatalf("receipt stages remain: %v", stages)
 	}
+}
+
+func receiptTestJSONPath(unixPath string) string {
+	return testpath.JSONString(testpath.Abs(unixPath))
 }
