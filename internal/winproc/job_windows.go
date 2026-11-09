@@ -329,6 +329,7 @@ func (j *Job) Interrupt() error {
 		// Group 0 would signal every process on the console, the caller too.
 		return errors.New("winproc: no process group to interrupt")
 	}
+	//nolint:gosec // G115: pid is a positive process id, which fits a DWORD.
 	if err := windows.GenerateConsoleCtrlEvent(windows.CTRL_BREAK_EVENT, uint32(pid)); err != nil {
 		return fmt.Errorf("winproc: send CTRL_BREAK to process group %d: %w", pid, err)
 	}
