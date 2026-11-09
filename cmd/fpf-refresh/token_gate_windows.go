@@ -17,6 +17,8 @@ import (
 // script builds its virtual environment with python -m venv and calls
 // $env/bin/python, which does not exist on Windows (the interpreter is
 // Scripts/python.exe).
+//
+//nolint:gosec // G101: the value is a script file name, not a credential.
 const windowsTokenGateScript = "fpf_query_token_gate_uv.sh"
 
 // tokenGateVerifier turns the token-gate coordinates the check names into the

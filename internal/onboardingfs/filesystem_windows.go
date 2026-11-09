@@ -595,6 +595,8 @@ func checkedFileDescriptor(file *os.File, subject string) (int, error) {
 // file, which the shared contract test exercises. winfs returns every handle
 // already wrapped in an *os.File, so the Windows effects adopt no raw value;
 // an unusable value is rejected with the same texts.
+//
+//nolint:unused // kept as the twin of the Unix helper, which the Windows effects do not call.
 func newFileFromUnixDescriptor(
 	descriptor int,
 	name string,

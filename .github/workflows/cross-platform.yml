@@ -53,13 +53,26 @@ jobs:
             echo "attribution line found" >&2; exit 1
           fi
       - name: Changed files are LF; no binaries, no blob over 1 MiB, no exe tracked
+        env:
+          # Generated carriers: tracked upstream as binary and over 1 MiB, rebuilt by cmd/fpf-refresh, never edited by hand.
+          # data/haft/fpf-integration.lock.json pins the digest of this file.
+          GENERATED_CARRIERS: internal/cli/fpf.db
         run: |
+          # Keeps only the lines whose last tab-separated field (the path) is not a generated carrier.
+          without_carriers() {
+            while IFS= read -r line; do
+              case " $GENERATED_CARRIERS " in
+                *" ${line##*$'\t'} "*) ;;
+                *) printf '%s\n' "$line" ;;
+              esac
+            done
+          }
           git diff -z --name-only --diff-filter=AMR "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/changed.z"
           crlf=$(xargs -0 -r -a "$RUNNER_TEMP/changed.z" git ls-files --eol -- | awk '$1 ~ /^i\/(crlf|mixed)$/')
-          binary=$(git diff --numstat "$BASE_SHA" "$HEAD_SHA" | awk -F'\t' '$1 == "-" && $2 == "-"')
+          binary=$(git diff --numstat "$BASE_SHA" "$HEAD_SHA" | awk -F'\t' '$1 == "-" && $2 == "-"' | without_carriers)
           big=$(git rev-list --objects "$BASE_SHA..$HEAD_SHA" |
             git cat-file --batch-check='%(objecttype) %(objectsize) %(rest)' |
-            awk '$1 == "blob" && $2 > 1048576')
+            awk '$1 == "blob" && $2 > 1048576 {print $2 "\t" $3}' | without_carriers)
           exe=$(git ls-files -- '*.exe' '*.exe~')
           fail=0
           for v in crlf binary big exe; do

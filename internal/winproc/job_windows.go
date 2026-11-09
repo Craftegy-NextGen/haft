@@ -103,6 +103,7 @@ func setKillOnClose(handle windows.Handle, kill bool) error {
 	ok, _, err := procSetInformationJobObject.Call(
 		uintptr(handle),
 		windows.JobObjectExtendedLimitInformation,
+		//nolint:gosec // G103: the pointer is the fixed-size Windows job information struct passed to SetInformationJobObject.
 		uintptr(unsafe.Pointer(&info)),
 		unsafe.Sizeof(info),
 	)
@@ -137,6 +138,7 @@ func (s *jobState) adoptLocked(pid int) error {
 	process, err := windows.OpenProcess(
 		windows.PROCESS_SET_QUOTA|windows.PROCESS_TERMINATE|windows.PROCESS_QUERY_LIMITED_INFORMATION,
 		false,
+		//nolint:gosec // G115: pid is a positive process id, which fits a DWORD.
 		uint32(pid),
 	)
 	if err != nil {
@@ -168,6 +170,7 @@ func resumeProcess(pid int) error {
 	entry := windows.ThreadEntry32{Size: uint32(unsafe.Sizeof(windows.ThreadEntry32{}))}
 	resumed := 0
 	for err = windows.Thread32First(snapshot, &entry); err == nil; err = windows.Thread32Next(snapshot, &entry) {
+		//nolint:gosec // G115: pid is a positive process id, which fits a DWORD.
 		if entry.OwnerProcessID != uint32(pid) {
 			continue
 		}
@@ -226,6 +229,7 @@ func (j *Job) Terminate() error {
 	if err := s.openMembersLocked(members); err != nil {
 		return err
 	}
+	//nolint:gosec // G115: pid is a positive process id, which fits a DWORD.
 	if child, held := members[uint32(s.pid)]; held {
 		event, err := windows.WaitForSingleObject(child, 0)
 		s.killed = err != nil || event != windows.WAIT_OBJECT_0
@@ -273,11 +277,13 @@ type jobObjectBasicProcessIDList struct {
 // and OpenProcess is skipped: it is no longer in the job.
 func (s *jobState) openMembersLocked(members map[uint32]windows.Handle) error {
 	list := new(jobObjectBasicProcessIDList)
+	//nolint:gosec // G103: the pointer is the fixed-size process id list struct filled by QueryInformationJobObject.
 	err := queryJob(s.handle, windows.JobObjectBasicProcessIdList, unsafe.Pointer(list), unsafe.Sizeof(*list))
 	if err != nil && !errors.Is(err, windows.ERROR_MORE_DATA) {
 		return fmt.Errorf("winproc: list job processes: %w", err)
 	}
 	for _, id := range list.ProcessIDList[:min(int(list.NumberOfProcessIdsInList), len(list.ProcessIDList))] {
+		//nolint:gosec // G115: id is a uintptr process id from the job list, which fits a DWORD.
 		pid := uint32(id)
 		if _, held := members[pid]; held {
 			continue
@@ -345,6 +351,7 @@ func (j *Job) ActiveProcesses() (int, error) {
 
 func (s *jobState) activeLocked() (int, error) {
 	info := new(jobObjectBasicAccountingInformation)
+	//nolint:gosec // G103: the pointer is the fixed-size accounting struct filled by QueryInformationJobObject.
 	if err := queryJob(s.handle, windows.JobObjectBasicAccountingInformation, unsafe.Pointer(info), unsafe.Sizeof(*info)); err != nil {
 		return 0, fmt.Errorf("winproc: query job accounting: %w", err)
 	}

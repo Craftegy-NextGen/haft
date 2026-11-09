@@ -13,7 +13,7 @@
 // [Strict] is the one entry point. It wraps a clock so that every reading
 // is strictly later than the previous reading of the same wrapped clock:
 //
-//   - On Linux and macOS it returns the clock it was given. Unix behaviour is
+//   - On Linux and macOS it returns the clock it was given. Unix behavior is
 //     identical to code that uses the clock directly; declcheck proves the call
 //     sites are pure identity wrappers (ADR-091).
 //   - On Windows, when the wrapped clock has not advanced since the previous

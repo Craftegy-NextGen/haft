@@ -30,6 +30,7 @@ func createFixtureDirectory(dir, pattern string) (string, error) {
 		prefix, suffix = pattern[:star], pattern[star+1:]
 	}
 	for range 10000 {
+		//nolint:gosec // G404: only a fixture-name suffix, retried on a collision; not a secret.
 		name := prefix + strconv.FormatUint(uint64(rand.Uint32()), 10) + suffix
 		err := parent.Mkdir(name, winfs.Private)
 		if errors.Is(err, fs.ErrExist) {

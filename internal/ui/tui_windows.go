@@ -41,7 +41,7 @@ func RunInteractive(renderView ViewRenderer, refresh func() error) error {
 
 	// Handle signals for Ctrl+C
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt, os.Kill)
+	signal.Notify(sigCh, os.Interrupt)
 	defer signal.Stop(sigCh)
 
 	current := 0
