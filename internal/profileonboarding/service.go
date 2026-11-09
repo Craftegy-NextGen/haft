@@ -9,6 +9,7 @@ import (
 
 	profileadmissionsqlite "github.com/m0n0x41d/haft/internal/profileadmission/sqlite"
 	"github.com/m0n0x41d/haft/internal/profileprojection"
+	"github.com/m0n0x41d/haft/internal/strictclock"
 )
 
 type profileLedgerRevalidator func(context.Context) error
@@ -49,7 +50,7 @@ func newService(
 		database:   database,
 		admission:  admission,
 		projection: projection,
-		now:        time.Now,
+		now:        strictclock.Strict(time.Now),
 		revalidate: revalidate,
 	}}, nil
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/m0n0x41d/haft/internal/profileonboarding"
 	"github.com/m0n0x41d/haft/internal/projectledger"
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+	"github.com/m0n0x41d/haft/internal/strictclock"
 	"github.com/m0n0x41d/haft/internal/testpath"
 	"github.com/m0n0x41d/haft/internal/testsupport/kerneldbfixture"
 )
@@ -259,7 +260,7 @@ func (harness *Harness) prepareV3AdmissionRequest(
 	if err != nil {
 		t.Fatalf("build fixture profile-declaration policy: %v", err)
 	}
-	clock := func() time.Time { return time.Now().UTC().Round(0) }
+	clock := strictclock.Strict(func() time.Time { return time.Now().UTC().Round(0) })
 	fixture, err := profileonboarding.PrepareProfileDeclarationAdmissionForTestFixture(
 		t,
 		context.Background(),
