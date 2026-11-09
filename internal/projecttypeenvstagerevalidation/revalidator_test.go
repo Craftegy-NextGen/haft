@@ -18,6 +18,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/projecttypeenvstagerevalidation"
 	"github.com/m0n0x41d/haft/internal/projecttypeenvtransitioncompatibility"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestCurrentSelectionStageZeroIsInvalidAndNonSerializable(t *testing.T) {
@@ -1080,7 +1082,7 @@ func noCanonicalProfileForStage(
 ) projecttypeenvprofilebasis.NoCanonicalProjectProfile {
 	t.Helper()
 	root, err := projectprofile.NewProjectRootV1(
-		"/tmp/haft-stage-revalidation-" + stage.Project().String(),
+		testpath.Abs("/tmp/haft-stage-revalidation-") + stage.Project().String(),
 	)
 	if err != nil {
 		t.Fatalf("NewProjectRootV1(): %v", err)
@@ -1170,7 +1172,7 @@ func declaredProfileForStage(
 		t.Fatalf("profile seed %q must be one lowercase hexadecimal digit", seed)
 	}
 	root, err := projectprofile.NewProjectRootV1(
-		"/tmp/haft-stage-revalidation-" + stage.Project().String(),
+		testpath.Abs("/tmp/haft-stage-revalidation-") + stage.Project().String(),
 	)
 	if err != nil {
 		t.Fatalf("NewProjectRootV1(): %v", err)

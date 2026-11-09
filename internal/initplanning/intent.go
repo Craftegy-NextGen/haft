@@ -323,7 +323,7 @@ func ParseInitIntent(input WeakInitIntent) (InitIntent, error) {
 	if err != nil {
 		return InitIntent{}, err
 	}
-	projectRoot, err := parseCanonicalAbsolutePath(input.ProjectRoot)
+	projectRoot, err := parseCanonicalProjectRoot(input.ProjectRoot)
 	if err != nil {
 		return InitIntent{}, fmt.Errorf("parse project root: %w", err)
 	}

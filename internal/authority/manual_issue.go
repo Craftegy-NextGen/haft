@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/m0n0x41d/haft/internal/strictclock"
 	"github.com/mattn/go-isatty"
 )
 
@@ -52,7 +53,7 @@ func CaptureVerifiedSpeechAct(
 		ctx,
 		prepared,
 		terminal,
-		time.Now,
+		strictclock.Strict(time.Now),
 		rand.Reader,
 	)
 }
@@ -227,7 +228,7 @@ func CaptureVerifiedAuthorityAct(
 		reviewText,
 		exactPhraseDigest,
 		terminal,
-		time.Now,
+		strictclock.Strict(time.Now),
 		rand.Reader,
 	)
 }

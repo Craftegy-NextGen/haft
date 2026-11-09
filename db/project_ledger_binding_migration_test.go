@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -227,9 +228,9 @@ func insertProjectLedgerBindingForMigrationTest(
 	)
 	bindingJSON := `{"schema":"haft.project-ledger-binding/v1","project_id":"` +
 		projectID +
-		`","project_root":"` +
-		projectRoot +
-		`","bound_at":"` +
+		`","project_root":` +
+		testpath.JSONString(projectRoot) +
+		`,"bound_at":"` +
 		boundAt +
 		`"}`
 	digest := sha256.Sum256([]byte(bindingJSON))

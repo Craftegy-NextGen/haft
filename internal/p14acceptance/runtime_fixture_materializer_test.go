@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 	"github.com/m0n0x41d/haft/internal/testsupport/profileadmissionfixture"
 	_ "modernc.org/sqlite"
 )
@@ -480,7 +481,7 @@ func snapshotP14SQLiteDatabase(
 	}
 	sourceURL := url.URL{
 		Scheme: "file",
-		Path:   sourcePath,
+		Path:   sqliteuri.Path(sourcePath),
 	}
 	query := sourceURL.Query()
 	query.Set("mode", "ro")
@@ -519,7 +520,7 @@ func snapshotP14SQLiteDatabase(
 func sourceURLForP14ReadOnly(path string) string {
 	sourceURL := url.URL{
 		Scheme: "file",
-		Path:   path,
+		Path:   sqliteuri.Path(path),
 	}
 	query := sourceURL.Query()
 	query.Set("mode", "ro")

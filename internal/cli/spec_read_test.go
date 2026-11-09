@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"slices"
@@ -165,7 +166,7 @@ func TestLoadProjectSpecificationSetFromSQLEditionsPropagatesStoreOpenFailure(t 
 	if err := os.WriteFile(homeFile, []byte("not a directory"), 0o644); err != nil {
 		t.Fatalf("write home file: %v", err)
 	}
-	t.Setenv("HOME", homeFile)
+	testpath.SetHome(t, homeFile)
 
 	_, _, err := loadProjectSpecificationSetFromSQLEditions(root)
 	if err == nil {

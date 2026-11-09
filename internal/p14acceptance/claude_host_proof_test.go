@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -1052,7 +1053,7 @@ func TestP14ClaudeHostProofRejectsMissingAndOldGeneration(t *testing.T) {
 		Claude: p14ClaudeHostProcessObservation{
 			PID:              80,
 			ParentPID:        2,
-			ExecutablePath:   "/synthetic/claude",
+			ExecutablePath:   testpath.Abs("/synthetic/claude"),
 			ExecutableDigest: p14TestDigest("claude-executable"),
 			StartedAt:        "2026-07-28T09:59:00Z",
 			ArgumentsDigest:  p14TestDigest("claude-arguments"),

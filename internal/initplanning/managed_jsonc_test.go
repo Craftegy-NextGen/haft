@@ -2,6 +2,7 @@ package initplanning
 
 import (
 	"io/fs"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -9,7 +10,7 @@ import (
 func TestManagedJSONCRewriteEditionPreservesUnownedSemantics(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	desired, err := NewJSONObjectEntryFragment(
 		carrierPath,
 		ComponentMCP,
@@ -90,7 +91,7 @@ func TestManagedJSONCRewriteEditionPreservesUnownedSemantics(
 func TestManagedJSONCRewriteEditionRemainsFailClosed(
 	t *testing.T,
 ) {
-	carrierPath := t.TempDir() + "/settings.json"
+	carrierPath := filepath.Join(t.TempDir(), "settings.json")
 	jsoncFragment, err := NewJSONObjectEntryFragment(
 		carrierPath,
 		ComponentMCP,

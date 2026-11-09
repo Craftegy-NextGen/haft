@@ -144,7 +144,7 @@ func canonicalPublicationResourceSet(
 		}
 		volumeRoot := filepath.VolumeName(resource) +
 			string(filepath.Separator)
-		if resource == volumeRoot {
+		if resource == volumeRoot && !volumeRootResourcesAllowed {
 			return nil, "", fmt.Errorf(
 				"filesystem root cannot be a publication resource",
 			)

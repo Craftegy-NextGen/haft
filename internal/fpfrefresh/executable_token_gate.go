@@ -143,7 +143,7 @@ func verifyCandidateTokenGateFile(
 	if !info.Mode().IsRegular() {
 		return fmt.Errorf("candidate token-gate %s is not a regular file", label)
 	}
-	if requireExecutable && info.Mode().Perm()&0o111 == 0 {
+	if requireExecutable && executableModeMissing(path, info) {
 		return fmt.Errorf("candidate token-gate %s is not executable", label)
 	}
 	if info.Size() <= 0 {

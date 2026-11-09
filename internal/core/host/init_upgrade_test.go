@@ -70,7 +70,7 @@ func TestInitUpgradesExactB1AssetsAndPreservesUserText(t *testing.T) {
 			t.Fatalf("skill %s did not advance to task tools", name)
 		}
 		info, err := os.Stat(path)
-		if err != nil || info.Mode().Perm() != 0600 {
+		if err != nil || existingSkillModeChanged(info) {
 			t.Fatalf("skill %s lost existing file mode", name)
 		}
 	}

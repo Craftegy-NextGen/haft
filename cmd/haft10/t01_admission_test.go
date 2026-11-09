@@ -11,12 +11,14 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 // The CLI and both MCP profiles must give the same first rejection for a
 // request with two invalid controls before creating a project store.
 func TestT01ActualAdmissionOrderingAndCorrection(t *testing.T) {
-	binary := filepath.Join(t.TempDir(), "haft10")
+	binary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	build := exec.Command("go", "build", "-o", binary, ".")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build haft10: %v: %s", err, output)

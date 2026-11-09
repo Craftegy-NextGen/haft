@@ -3,6 +3,7 @@ package initexecution
 import (
 	"context"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strings"
@@ -106,7 +107,7 @@ func TestExistingProjectCoreEffectVerifiesExactCurrentPlan(
 		t.Fatalf("create project root: %v", err)
 	}
 	haftDir := filepath.Join(projectRoot, ".haft")
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 	config := project.Config{
 		ID:   "qnt_e3149c17",
 		Name: "project",

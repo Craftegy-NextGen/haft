@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"net"
 	"os"
@@ -106,7 +107,7 @@ func TestSharedSidecarDaemonStartsRelativeDevBuildAfterChangingCWD(t *testing.T)
 	repoDir := t.TempDir()
 	helper := filepath.Join(repoDir, "embed-sidecar", "target", "debug", sidecarBinaryName)
 	writeSharedSidecarHelperAt(t, helper)
-	t.Setenv("HOME", filepath.Join(t.TempDir(), "home"))
+	testpath.SetHome(t, filepath.Join(t.TempDir(), "home"))
 
 	socketDir := filepath.Join("/tmp", fmt.Sprintf("haft-test-%d-%d", os.Getpid(), time.Now().UnixNano()))
 	startLog := filepath.Join(t.TempDir(), "starts.log")

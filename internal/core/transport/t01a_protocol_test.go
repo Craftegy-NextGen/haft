@@ -361,18 +361,18 @@ func t01aAssertB1Read(t *testing.T, client *t01aProtocolClient, tool string, bas
 		t.Fatalf("B1 receipt changed through %s: %+v", tool, recordData["write_receipt"])
 	}
 	recordBytes := t01aBytesPart(t, client, tool, carrierDescriptor)
-	recordPath := filepath.Join(".haft", "notes", basis.RecordID+".md")
+	recordPath := filepath.ToSlash(filepath.Join(".haft", "notes", basis.RecordID+".md"))
 	if !bytes.Equal(recordBytes, frozen[recordPath]) {
 		t.Fatalf("B1 carrier bytes changed through %s", tool)
 	}
 	snapshotBytes := t01aBytesPart(t, client, tool, snapshotDescriptor)
 	snapshotName := strings.TrimPrefix(snapshotDescriptor.Digest, "sha256:") + ".json"
-	snapshotPath := filepath.Join(".haft", "editions", "sha256", snapshotName)
+	snapshotPath := filepath.ToSlash(filepath.Join(".haft", "editions", "sha256", snapshotName))
 	if !bytes.Equal(snapshotBytes, frozen[snapshotPath]) {
 		t.Fatalf("B1 snapshot bytes changed through %s", tool)
 	}
-	stagedRoot := filepath.Join(".haft", "transactions", basis.TransactionID, "staged")
-	if !bytes.Equal(snapshotBytes, frozen[filepath.Join(stagedRoot, "000000")]) || !bytes.Equal(recordBytes, frozen[filepath.Join(stagedRoot, "000001")]) {
+	stagedRoot := filepath.ToSlash(filepath.Join(".haft", "transactions", basis.TransactionID, "staged"))
+	if !bytes.Equal(snapshotBytes, frozen[filepath.ToSlash(filepath.Join(stagedRoot, "000000"))]) || !bytes.Equal(recordBytes, frozen[filepath.ToSlash(filepath.Join(stagedRoot, "000001"))]) {
 		t.Fatalf("B1 staged transaction outputs differ from served bytes through %s", tool)
 	}
 }
@@ -646,7 +646,7 @@ func TestT01ATaskToolsProtocol(t *testing.T) {
 
 func TestT01AFrozenB1ReceiptAndBytesSurviveTaskTools(t *testing.T) {
 	root, basis, request, frozen := t01aFrozenB1(t)
-	manifestPath := filepath.Join(".haft", "transactions", basis.TransactionID, "manifest.json")
+	manifestPath := filepath.ToSlash(filepath.Join(".haft", "transactions", basis.TransactionID, "manifest.json"))
 	var manifest struct {
 		TransactionID string `json:"transaction_id"`
 		RequestID     string `json:"request_id"`
@@ -658,7 +658,7 @@ func TestT01AFrozenB1ReceiptAndBytesSurviveTaskTools(t *testing.T) {
 	if manifest.TransactionID != basis.TransactionID || manifest.RequestID != basis.RequestID || manifest.PayloadDigest != basis.PayloadDigest {
 		t.Fatalf("B1 manifest and pinned basis disagree: %+v", manifest)
 	}
-	commitPath := filepath.Join(".haft", "transactions", basis.TransactionID, "commit.json")
+	commitPath := filepath.ToSlash(filepath.Join(".haft", "transactions", basis.TransactionID, "commit.json"))
 	var commit struct {
 		ManifestDigest string `json:"manifest_digest"`
 	}

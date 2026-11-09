@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -162,7 +163,7 @@ func newCLIProfileOnboardLedgerFixture(t *testing.T) cliProfileOnboardLedgerFixt
 	t.Helper()
 	root := mustCLIProfileOnboardPhysicalPath(t, t.TempDir())
 	home := mustCLIProfileOnboardPhysicalPath(t, t.TempDir())
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	projectID := "qnt_a11ce001"
 	haftDir := filepath.Join(root, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {

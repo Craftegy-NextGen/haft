@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"slices"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func t02rCLIPaths() []string {
@@ -71,7 +73,7 @@ func t02rBoundedResult(t *testing.T, result map[string]any) {
 }
 
 func TestT02RActualCLIReportsUnassessedPathsAndPartialRetry(t *testing.T) {
-	binary := filepath.Join(t.TempDir(), "haft10")
+	binary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	build := exec.Command("go", "build", "-o", binary, ".")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatal(err, string(output))
@@ -144,7 +146,7 @@ func TestT02RActualCLIReportsUnassessedPathsAndPartialRetry(t *testing.T) {
 }
 
 func TestT02RActualCLIDistinguishesSourceSelectionAndUnavailability(t *testing.T) {
-	binary := filepath.Join(t.TempDir(), "haft10")
+	binary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	build := exec.Command("go", "build", "-o", binary, ".")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatal(err, string(output))

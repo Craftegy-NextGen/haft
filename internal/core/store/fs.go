@@ -195,14 +195,6 @@ func regularBytes(root *os.Root, p string, max int64) ([]byte, error) {
 	}
 	return b, nil
 }
-func syncDir(root *os.Root, p string) error {
-	f, err := root.Open(p)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return f.Sync()
-}
 func ensureDirs(root *os.Root, p string, perm fs.FileMode) error {
 	if p == "." {
 		return nil

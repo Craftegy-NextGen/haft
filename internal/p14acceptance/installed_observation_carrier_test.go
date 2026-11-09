@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"path/filepath"
@@ -1037,7 +1038,7 @@ func syntheticP14ClaudeHostProofBinding() p14ClaudeHostProofBinding {
 func validateP14ClaudeHostProofBinding(
 	binding p14ClaudeHostProofBinding,
 ) error {
-	if filepath.Dir(binding.CarrierPath) != ".context/p14" ||
+	if filepath.ToSlash(filepath.Dir(binding.CarrierPath)) != ".context/p14" ||
 		!strings.HasPrefix(
 			filepath.Base(binding.CarrierPath),
 			p14ClaudeHostProofCarrierPrefix+"-",
@@ -1062,15 +1063,15 @@ func syntheticP14VerifiedRuntimeSnapshot(
 		RestartCheckpointDigest:        p14TestDigest("restart-checkpoint"),
 		PreparedTaskRuntimePID:         4001,
 		PreparedTaskRuntimeStartedAt:   time.Date(2026, 7, 26, 10, 0, 0, 0, time.UTC),
-		PreparedTaskRuntimeExecutable:  "/Applications/Codex.app/Contents/Resources/codex",
+		PreparedTaskRuntimeExecutable:  testpath.Abs("/Applications/Codex.app/Contents/Resources/codex"),
 		PreparedTaskRuntimeArgsDigest:  p14TestDigest("prepared-task-runtime-args"),
-		InstalledExecutablePath:        "/installed/haft",
+		InstalledExecutablePath:        testpath.Abs("/installed/haft"),
 		InstalledExecutableDigest:      prepared.FrozenBasis.Candidate.ExecutableDigest,
 		ProjectRoot:                    prepared.FrozenBasis.SelectedProject.ProjectRoot,
 		LiveMCPPID:                     4242,
 		LiveMCPStartedAt:               time.Date(2026, 7, 26, 12, 0, 0, 0, time.UTC),
 		LiveMCPFulfilledAt:             time.Date(2026, 7, 26, 12, 0, 1, 0, time.UTC),
-		LiveMCPExecutablePath:          "/installed/haft",
+		LiveMCPExecutablePath:          testpath.Abs("/installed/haft"),
 		LiveMCPExecutableDigest:        prepared.FrozenBasis.Candidate.ExecutableDigest,
 		LiveMCPProjectRoot:             prepared.FrozenBasis.SelectedProject.ProjectRoot,
 		LiveMCPReceiptDigest:           p14TestDigest("live-mcp-receipt"),

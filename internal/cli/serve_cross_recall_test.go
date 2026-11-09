@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -12,7 +13,7 @@ import (
 
 func TestApplyCrossProjectRecallAppendsParaphrasedFrameHit(t *testing.T) {
 	ctx := context.Background()
-	t.Setenv("HOME", t.TempDir())
+	testpath.SetHome(t, t.TempDir())
 
 	indexStore, err := project.OpenIndex()
 	if err != nil {

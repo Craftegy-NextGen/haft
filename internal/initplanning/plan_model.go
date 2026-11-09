@@ -477,7 +477,7 @@ func (builder CoreProjectPlanBuilder) WithInitialProfileBootstrap(
 }
 
 func (builder CoreProjectPlanBuilder) Build() (CoreProjectPlan, error) {
-	projectRoot, err := parseCanonicalAbsolutePath(builder.projectRoot)
+	projectRoot, err := parseCanonicalProjectRoot(builder.projectRoot)
 	if err != nil {
 		return CoreProjectPlan{}, fmt.Errorf("core project root: %w", err)
 	}
@@ -1410,7 +1410,7 @@ func (builder HostAdapterInstallPlanBuilder) Build() (HostAdapterInstallPlan, er
 	if !builder.publication.valid() {
 		return HostAdapterInstallPlan{}, fmt.Errorf("host adapter plan publication identity is invalid")
 	}
-	projectRoot, err := parseCanonicalAbsolutePath(builder.projectRoot)
+	projectRoot, err := parseCanonicalProjectRoot(builder.projectRoot)
 	if err != nil {
 		return HostAdapterInstallPlan{}, fmt.Errorf("host adapter project root: %w", err)
 	}
@@ -1495,7 +1495,7 @@ func canonicalTargetRoots(raw []string) ([]string, error) {
 	seen := make(map[string]struct{}, len(raw))
 	result := make([]string, 0, len(raw))
 	for _, candidate := range raw {
-		root, err := parseCanonicalAbsolutePath(candidate)
+		root, err := parseCanonicalProjectRoot(candidate)
 		if err != nil {
 			return nil, fmt.Errorf("host adapter target root: %w", err)
 		}

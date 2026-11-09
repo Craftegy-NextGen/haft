@@ -15,6 +15,7 @@ import (
 
 	"github.com/m0n0x41d/haft/db"
 	"github.com/m0n0x41d/haft/internal/projectledger"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 const bindingRecoveryOutcome = "binding_recovered"
@@ -300,7 +301,7 @@ func verifyBindingRecoveryBackup(
 	query.Set("mode", "ro")
 	dsn := url.URL{
 		Scheme:   "file",
-		Path:     backupPath,
+		Path:     sqliteuri.Path(backupPath),
 		RawQuery: query.Encode(),
 	}
 	database, err := sql.Open("sqlite", dsn.String())

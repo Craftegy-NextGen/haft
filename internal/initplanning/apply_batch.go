@@ -182,16 +182,16 @@ func publicationOutputStep(
 	case PredecessorMissing, PredecessorMissingOwned:
 		kind = PublicationCreate
 	case PredecessorCurrentOwned:
-		if expectation.digest != output.digest || expectation.mode != output.mode {
+		if expectation.digest != output.digest || predecessorModeDiffers(expectation, output) {
 			return HostPublicationStep{}, fmt.Errorf("current-owned publication output differs from observed predecessor")
 		}
 		kind = PublicationPreserve
 	case PredecessorOutdatedOwned:
-		if expectation.digest == output.digest && expectation.mode == output.mode {
+		if expectation.digest == output.digest && predecessorModeMatches(expectation, output) {
 			return HostPublicationStep{}, fmt.Errorf("outdated-owned publication output is already current")
 		}
 	case PredecessorKnownLegacyExact:
-		if expectation.digest == output.digest && expectation.mode == output.mode {
+		if expectation.digest == output.digest && predecessorModeMatches(expectation, output) {
 			kind = PublicationAdoptLegacy
 		}
 	case PredecessorLocallyModifiedOwned, PredecessorForeign, PredecessorOrphanedOwned:

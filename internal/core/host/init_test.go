@@ -51,7 +51,7 @@ func TestInitPreservesConfigAndIsIdempotent(t *testing.T) {
 		t.Fatal("operator content rewritten")
 	}
 	stat, err := os.Stat(filepath.Join(c.Root, ".codex/config.toml"))
-	if err != nil || stat.Mode().Perm() != 0600 {
+	if err != nil || existingConfigModeChanged(stat) {
 		t.Fatal("changed existing private mode")
 	}
 	if !bytes.Contains(before[".codex/config.toml"], []byte(c.Binary)) || !bytes.Contains(before[".codex/config.toml"], []byte("--source-root")) {

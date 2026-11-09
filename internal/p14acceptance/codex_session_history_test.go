@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 )
@@ -112,21 +111,6 @@ type p14CodexSessionToolEvent struct {
 type p14CodexSessionFileIdentity struct {
 	Device uint64
 	Inode  uint64
-}
-
-func p14CodexSessionIdentityFromFileInfo(
-	info os.FileInfo,
-) (p14CodexSessionFileIdentity, error) {
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	if !ok || stat.Dev == 0 || stat.Ino == 0 {
-		return p14CodexSessionFileIdentity{}, fmt.Errorf(
-			"P14 Codex session history has no stable device/inode identity",
-		)
-	}
-	return p14CodexSessionFileIdentity{
-		Device: uint64(stat.Dev),
-		Inode:  uint64(stat.Ino),
-	}, nil
 }
 
 type p14CodexSessionToolCounter struct {

@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type pboFixtureV1 struct {
@@ -302,7 +304,7 @@ func TestProfileOnboardingEffectRejectsMismatchedWorkBasisAndAssessment(t *testi
 
 func pboFixture(t testing.TB) pboFixtureV1 {
 	t.Helper()
-	root, err := NewProjectRootV1("/tmp/haft-profile-basis")
+	root, err := NewProjectRootV1(testpath.Abs("/tmp/haft-profile-basis"))
 	if err != nil {
 		t.Fatalf("NewProjectRootV1: %v", err)
 	}

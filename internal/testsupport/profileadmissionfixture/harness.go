@@ -16,6 +16,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/profileonboarding"
 	"github.com/m0n0x41d/haft/internal/projectledger"
 	"github.com/m0n0x41d/haft/internal/projectprofile"
+	"github.com/m0n0x41d/haft/internal/strictclock"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"github.com/m0n0x41d/haft/internal/testsupport/kerneldbfixture"
 )
 
@@ -57,7 +59,7 @@ func New(t testing.TB, projectRoot string) *Harness {
 		t.Fatalf("write fixture project identity: %v", err)
 	}
 	home := t.TempDir()
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	databaseDir := filepath.Join(home, ".haft", "projects", projectID)
 	if err := os.MkdirAll(databaseDir, 0o755); err != nil {
 		t.Fatalf("create fixture project-ledger directory: %v", err)
@@ -258,7 +260,7 @@ func (harness *Harness) prepareV3AdmissionRequest(
 	if err != nil {
 		t.Fatalf("build fixture profile-declaration policy: %v", err)
 	}
-	clock := func() time.Time { return time.Now().UTC().Round(0) }
+	clock := strictclock.Strict(func() time.Time { return time.Now().UTC().Round(0) })
 	fixture, err := profileonboarding.PrepareProfileDeclarationAdmissionForTestFixture(
 		t,
 		context.Background(),

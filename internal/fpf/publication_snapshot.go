@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"path/filepath"
 )
 
 // SourceDocumentDigest identifies the exact bytes of one source publication.
@@ -53,12 +52,12 @@ func LoadPublicationSnapshot(readmePath, specPath, sourceRevision string) (Publi
 	revision := resolvePublicationRevision(sourceRevision, spec)
 	bundle := SourceBundle{
 		Readme: SourceDocument{
-			Path:           filepath.Clean(readmePath),
+			Path:           cleanSourcePath(readmePath),
 			SourceRevision: revision,
 			Markdown:       readme,
 		},
 		Spec: SourceDocument{
-			Path:           filepath.Clean(specPath),
+			Path:           cleanSourcePath(specPath),
 			SourceRevision: revision,
 			Markdown:       spec,
 		},

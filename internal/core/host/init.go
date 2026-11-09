@@ -179,7 +179,7 @@ func initWithHooks(c Config, hooks initHooks) (Result, error) {
 			return r, fmt.Errorf("candidate binary must be absolute")
 		}
 		bi, e := os.Stat(c.Binary)
-		if e != nil || !bi.Mode().IsRegular() || bi.Mode()&0111 == 0 {
+		if e != nil || !bi.Mode().IsRegular() || candidateBinaryNotExecutable(bi) {
 			return r, fmt.Errorf("candidate binary must be an existing executable")
 		}
 		c.Binary, e = filepath.EvalSymlinks(c.Binary)

@@ -392,7 +392,7 @@ func acquireRepositoryVerificationOperationLock(
 	}
 	created := false
 	if _, err := os.Lstat(layout.StateDirectory); errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(layout.StateDirectory, 0o700); err != nil {
+		if err := createStateDirectory(layout.StateDirectory); err != nil {
 			return nil, fmt.Errorf("create private FPF refresh state directory: %w", err)
 		}
 		created = true
@@ -406,7 +406,7 @@ func acquireRepositoryVerificationOperationLock(
 	if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
 		return nil, fmt.Errorf("FPF refresh state path is not a real directory")
 	}
-	if created && info.Mode().Perm()&0o077 != 0 {
+	if created && stateDirectoryNotPrivate(info) {
 		return nil, fmt.Errorf("new FPF refresh state directory is not private")
 	}
 	return acquireOperationLock(layout.Receipt)

@@ -11,11 +11,13 @@ import (
 
 	"github.com/m0n0x41d/haft/internal/authority"
 	"github.com/m0n0x41d/haft/internal/testsupport/kerneldbfixture"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestClosureKeepsFourRefsAndFPFTypedAdjudicationSeparate(t *testing.T) {
 	prepared := testPreparedAuthorization(t, testPreparedInput{
-		root:          "/tmp/haft-profile-authority-exact",
+		root:          testpath.Abs("/tmp/haft-profile-authority-exact"),
 		profileAuthor: "role-assignment:profile-author:exact",
 		identity:      "exact",
 	})
@@ -109,7 +111,7 @@ func TestClosureKeepsFourRefsAndFPFTypedAdjudicationSeparate(t *testing.T) {
 
 func TestValidateRecordedSourceRejectsEveryForeignBinding(t *testing.T) {
 	prepared := testPreparedAuthorization(t, testPreparedInput{
-		root:          "/tmp/haft-profile-authority-cross-binding",
+		root:          testpath.Abs("/tmp/haft-profile-authority-cross-binding"),
 		profileAuthor: "role-assignment:profile-author:cross-binding",
 		identity:      "cross-binding",
 	})
@@ -118,7 +120,7 @@ func TestValidateRecordedSourceRejectsEveryForeignBinding(t *testing.T) {
 	observedAt := startedAt.Add(time.Minute)
 	endedAt := observedAt.Add(time.Minute)
 	base := exactSourceRecipeForPrepared(t, prepared, startedAt, observedAt, endedAt)
-	foreignRoot, err := authority.NewProjectRoot("/tmp/haft-profile-authority-foreign")
+	foreignRoot, err := authority.NewProjectRoot(testpath.Abs("/tmp/haft-profile-authority-foreign"))
 	if err != nil {
 		t.Fatalf("foreign root: %v", err)
 	}

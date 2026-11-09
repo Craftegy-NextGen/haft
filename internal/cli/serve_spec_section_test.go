@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,7 +29,7 @@ func newBaselineTestProject(t *testing.T) (string, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("HOME", homeDir)
+	testpath.SetHome(t, homeDir)
 
 	root, err := filepath.EvalSymlinks(t.TempDir())
 	if err != nil {

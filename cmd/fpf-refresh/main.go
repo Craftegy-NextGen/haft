@@ -164,10 +164,10 @@ func runCheck(
 		},
 		ToolRevision: toolRevision,
 		TokenGate:    &tokenGate,
-		TokenGateVerifier: fpfrefresh.ExecutableCandidateTokenGate{
+		TokenGateVerifier: tokenGateVerifier(fpfrefresh.ExecutableCandidateTokenGate{
 			ShellPath:  "/bin/bash",
 			ScriptPath: filepath.Join(layout.Root, "scripts", "fpf_query_token_gate.sh"),
-		},
+		}),
 	})
 	defer func() {
 		exitCode, resultErr = joinCleanupResult(
@@ -658,7 +658,7 @@ func buildIndexerExecutableWithOperations(
 		}
 		return operations.removeAll(directory)
 	}
-	path := filepath.Join(directory, "haft-fpf-indexer")
+	path := indexerExecutablePath(filepath.Join(directory, "haft-fpf-indexer"))
 	output, err := operations.build(ctx, root, path)
 	if err != nil {
 		buildErr := fmt.Errorf(

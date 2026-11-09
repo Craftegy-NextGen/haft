@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestInstallationManifestIsCanonicalContentAddressedAndRoundTripsStrictly(t *testing.T) {
@@ -293,7 +295,7 @@ func TestProjectionInstallationManifestV2OwnsOnlyExactManagedFragments(
 func TestInstallationManifestV1CanonicalBytesRemainBackwardCompatible(
 	t *testing.T,
 ) {
-	root := "/tmp/haft-v9-manifest-v1-fixture"
+	root := testpath.Abs("/tmp/haft-v9-manifest-v1-fixture")
 	manifest, err := BuildInstallationManifest(
 		mustManifestAdapterPlan(t, root, false),
 	)

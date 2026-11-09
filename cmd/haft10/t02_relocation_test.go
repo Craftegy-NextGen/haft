@@ -11,13 +11,15 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 // Exercise project relocation through the installed executable. The copied
 // tree contains both Haft assets and operator content, while the original is
 // retained as a byte-for-byte control after its binary and source are moved.
 func TestT02ActualBinaryRelocatesCopiedProject(t *testing.T) {
-	oldBinary := filepath.Join(t.TempDir(), "haft10")
+	oldBinary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	build := exec.Command("go", "build", "-o", oldBinary, ".")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatal(err, string(output))
@@ -49,7 +51,7 @@ func TestT02ActualBinaryRelocatesCopiedProject(t *testing.T) {
 	t02Write(t, conflictingSkill, append(beforeSkill, []byte("operator edit\n")...))
 	conflictBefore := t02Snapshot(t, conflictCopy)
 
-	newBinary := filepath.Join(t.TempDir(), "haft10")
+	newBinary := testpath.Exe(filepath.Join(t.TempDir(), "haft10"))
 	if err := os.Rename(oldBinary, newBinary); err != nil {
 		t.Fatal(err)
 	}

@@ -406,13 +406,13 @@ func sidecarCandidates() []string {
 	if home, err := os.UserHomeDir(); err == nil {
 		base := filepath.Join(home, ".haft", "runtimes", "haft-embed", "current")
 		candidates = append(candidates,
-			filepath.Join(base, "bin", sidecarBinaryName),
-			filepath.Join(base, sidecarBinaryName),
+			sidecarExecutablePath(filepath.Join(base, "bin", sidecarBinaryName)),
+			sidecarExecutablePath(filepath.Join(base, sidecarBinaryName)),
 		)
 	}
 	candidates = append(candidates,
-		filepath.Join("embed-sidecar", "target", "release", sidecarBinaryName),
-		filepath.Join("embed-sidecar", "target", "debug", sidecarBinaryName),
+		sidecarExecutablePath(filepath.Join("embed-sidecar", "target", "release", sidecarBinaryName)),
+		sidecarExecutablePath(filepath.Join("embed-sidecar", "target", "debug", sidecarBinaryName)),
 	)
 	return candidates
 }
@@ -422,7 +422,7 @@ func isExecutableFile(path string) bool {
 	if err != nil || info.IsDir() {
 		return false
 	}
-	return info.Mode().Perm()&0o111 != 0
+	return modeIsExecutable(info)
 }
 
 func absoluteExecutablePath(path string) string {

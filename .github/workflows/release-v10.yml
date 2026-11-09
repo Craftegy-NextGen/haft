@@ -1,0 +1,138 @@
+# Fork-only release of the v10 CLI (cmd/haft10) for Windows, Linux and macOS.
+# The upstream release.yml builds the stable cmd/haft (the v9 line), skips alpha tags and has no Windows leg.
+# This workflow does not bundle the haft-embed sidecar: without it haft falls back to FTS5 plus PPR recall.
+# Tag names: upstream's release.yml also fires on v* tags unless the name contains alpha. If that workflow is enabled
+# in the fork, tag with alpha in the name (for example v10.1.0-alpha.winport.1) so only this workflow runs.
+name: Release v10
+
+on:
+  push:
+    tags: ['v10.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to embed, without the v prefix (for example 10.1.0-winport)
+        required: true
+        default: 10.1.0-winport
+        type: string
+      publish:
+        description: Publish a GitHub prerelease with the archives (a pushed v10 tag always publishes)
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-v10-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: windows-2025,     goos: windows, goarch: amd64, ext: .exe, archive: zip }
+          - { runner: ubuntu-latest,    goos: linux,   goarch: amd64, ext: '',   archive: tgz }
+          - { runner: ubuntu-24.04-arm, goos: linux,   goarch: arm64, ext: '',   archive: tgz }
+          - { runner: macos-latest,     goos: darwin,  goarch: arm64, ext: '',   archive: tgz }
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: Resolve the version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then version="${GITHUB_REF_NAME#v}"; else version="$INPUT_VERSION"; fi
+          case "$version" in 10.*) ;; *) echo "version must start with 10.: $version" >&2; exit 1;; esac
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Require a cgo C compiler (tree-sitter)
+        run: |
+          go version
+          gcc --version | head -n 1
+          test "$(go env CGO_ENABLED)" = 1
+      - name: Prepare desktop embed placeholder (as upstream ci.yml)
+        run: |
+          mkdir -p desktop/frontend/dist
+          printf 'ci placeholder\n' > desktop/frontend/dist/.ci-placeholder
+      - name: Build haft10
+        run: |
+          mkdir -p dist
+          go build -trimpath \
+            -ldflags "-s -w -X main.Version=${{ steps.version.outputs.version }}" \
+            -o "dist/haft10${{ matrix.ext }}" ./cmd/haft10/
+      - name: Smoke the binary reports the version and serves MCP
+        run: |
+          got=$("dist/haft10${{ matrix.ext }}" version)
+          printf '%s\n' "$got"
+          printf '%s\n' "$got" | grep -F '"version":"${{ steps.version.outputs.version }}"'
+          response=$(printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}' |
+            "dist/haft10${{ matrix.ext }}" serve 2>/dev/null | head -n 1)
+          printf '%s\n' "$response" | grep -F '"serverInfo"'
+      - name: Archive and checksum
+        run: |
+          name="haft10-${{ steps.version.outputs.version }}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          cd dist
+          if [ "${{ matrix.archive }}" = zip ]; then
+            7z a -tzip "$name.zip" "haft10${{ matrix.ext }}" > /dev/null
+            file="$name.zip"
+          else
+            tar czf "$name.tar.gz" "haft10${{ matrix.ext }}"
+            file="$name.tar.gz"
+          fi
+          if command -v sha256sum > /dev/null; then sha256sum "$file" > "$file.sha256"; else shasum -a 256 "$file" > "$file.sha256"; fi
+          cat "$file.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: haft10-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish prerelease
+    needs: [build]
+    if: ${{ github.ref_type == 'tag' || inputs.publish }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: haft10-*
+          merge-multiple: true
+          path: dist
+      - name: Create or update the GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+          TAG: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', needs.build.outputs.version) }}
+        run: |
+          ls -l dist
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --prerelease \
+              --target "$GITHUB_SHA" --title "haft10 $VERSION" \
+              --notes "haft10 $VERSION for Windows, Linux and macOS. Built from $GITHUB_SHA. The haft-embed sidecar is not bundled; semantic recall falls back to FTS5 plus PPR."
+          fi

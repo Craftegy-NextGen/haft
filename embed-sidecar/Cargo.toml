@@ -17,6 +17,9 @@ serde_json = "1"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 
+[target.'cfg(windows)'.dependencies]
+uds_windows = "1.2.1"
+
 [profile.release]
 strip = true
 lto = true

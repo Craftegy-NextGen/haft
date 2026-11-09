@@ -1,4 +1,4 @@
-//go:build darwin || linux
+//go:build darwin || linux || windows
 
 package agenthostrestart
 
@@ -13,6 +13,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type fakeOneShotLauncher struct {
@@ -242,27 +244,6 @@ func TestOneShotLaunchAgentPlistDisablesKeepAliveAndEscapesArguments(t *testing.
 	}
 }
 
-func TestSmokeCommandPassesMetacharactersAsOneArgument(t *testing.T) {
-	root := t.TempDir()
-	marker := filepath.Join(root, "must-not-exist")
-	script := filepath.Join(root, "echo-argv")
-	content := []byte("#!/bin/sh\nprintf '%s\\n' \"$@\"\n")
-	if err := os.WriteFile(script, content, 0o700); err != nil {
-		t.Fatalf("write argv script: %v", err)
-	}
-	argument := "$(touch " + marker + ")"
-	output := bytes.NewBuffer(nil)
-	if err := runSmokeCommand(context.Background(), root, "argv", script, []string{argument}, output); err != nil {
-		t.Fatalf("runSmokeCommand: %v", err)
-	}
-	if _, err := os.Stat(marker); !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("metacharacter argument was evaluated: %v", err)
-	}
-	if !strings.Contains(output.String(), argument) {
-		t.Fatalf("argument not preserved in output: %s", output.String())
-	}
-}
-
 func TestMCPProcessArgumentsRequireExactHaftServe(t *testing.T) {
 	if !isHaftServeArguments([]string{"/Users/operator/.local/bin/haft", "serve"}) {
 		t.Fatal("exact Haft serve argv was rejected")
@@ -283,7 +264,7 @@ func TestMCPProcessArgumentsRequireExactHaftServe(t *testing.T) {
 
 func executableFixture(t *testing.T, root string, name string) string {
 	t.Helper()
-	path := filepath.Join(root, name)
+	path := testpath.Exe(filepath.Join(root, name))
 	if err := os.WriteFile(path, []byte("executable fixture"), 0o700); err != nil {
 		t.Fatalf("write executable fixture: %v", err)
 	}

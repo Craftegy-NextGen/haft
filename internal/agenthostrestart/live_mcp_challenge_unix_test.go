@@ -1,4 +1,4 @@
-//go:build darwin || linux
+//go:build darwin || linux || windows
 
 package agenthostrestart
 
@@ -170,79 +170,5 @@ func TestLiveMCPChallengeIsPrivateBoundAndIdempotentlyReceipted(t *testing.T) {
 	}
 	if receipt.PID != observed.PID || !receipt.FulfilledAt.Equal(firstFulfilledAt) {
 		t.Fatalf("receipt identity = %#v", receipt)
-	}
-}
-
-func TestLiveMCPAndFallbackReceiptsRejectTamperAndDuplicateWake(t *testing.T) {
-	root := newRestartProject(t)
-	store, err := NewStore(root)
-	if err != nil {
-		t.Fatalf("NewStore: %v", err)
-	}
-	prepared := newPreparedFixture(t, root, "restart-receipt-tamper", digestOf('e'))
-	if err := store.Prepare(prepared); err != nil {
-		t.Fatalf("Prepare: %v", err)
-	}
-	submitted := applyStoreState(t, store, prepared, StateSubmitted, "")
-	if err := store.InstallLiveMCPChallenge(submitted); err != nil {
-		t.Fatalf("InstallLiveMCPChallenge: %v", err)
-	}
-	opened := applyStoreState(t, store, submitted, StateAppOpened, "")
-	resumed := applyStoreState(t, store, opened, StateResumed, "")
-	verification := validRuntimeVerification(resumed)
-	if err := store.withExclusiveLock(func() error {
-		return store.writeLiveMCPReceiptUnlocked(resumed, verification.LiveMCPReceipt)
-	}); err != nil {
-		t.Fatalf("write live receipt: %v", err)
-	}
-	livePath := store.restartReceiptPath(resumed.restartID, liveMCPReceiptSuffix)
-	content, err := os.ReadFile(livePath)
-	if err != nil {
-		t.Fatalf("read live receipt: %v", err)
-	}
-	content = bytes.Replace(
-		content,
-		[]byte(resumed.liveMCPChallengeNonce),
-		[]byte(digestOf('0')),
-		1,
-	)
-	if err := os.WriteFile(livePath, content, 0o600); err != nil {
-		t.Fatalf("tamper live receipt: %v", err)
-	}
-	if _, err := store.LoadLiveMCPReceipt(resumed); err == nil {
-		t.Fatal("tampered live MCP receipt was accepted")
-	}
-
-	if _, err := store.RecordResumeFallbackCleared(
-		resumed,
-		2,
-		resumed.createdAt.Add(time.Minute),
-	); err == nil {
-		t.Fatal("fallback accepted more than one wake")
-	}
-	if _, err := store.RecordResumeFallbackCleared(
-		resumed,
-		1,
-		resumed.createdAt.Add(2*time.Minute),
-	); err != nil {
-		t.Fatalf("record valid fallback receipt: %v", err)
-	}
-	fallbackPath := store.restartReceiptPath(resumed.restartID, fallbackReceiptSuffix)
-	if err := os.Chmod(fallbackPath, 0o644); err != nil {
-		t.Fatalf("weaken fallback mode: %v", err)
-	}
-	if _, err := store.LoadResumeFallbackReceipt(resumed); err == nil {
-		t.Fatal("world-readable fallback receipt was accepted")
-	}
-}
-
-func assertPrivateRegularMode(t *testing.T, path string) {
-	t.Helper()
-	info, err := os.Lstat(path)
-	if err != nil {
-		t.Fatalf("inspect %s: %v", filepath.Base(path), err)
-	}
-	if !info.Mode().IsRegular() || info.Mode().Perm() != 0o600 {
-		t.Fatalf("%s mode = %s", filepath.Base(path), info.Mode())
 	}
 }

@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type checkpointCommandEvidence struct {
@@ -55,7 +57,7 @@ func TestCheckpointCommandPreparesResumesAndVerifiesWithoutCallerDigests(t *test
 		TaskRuntime: TaskRuntimeIdentity{
 			PID:             4242,
 			StartedAt:       createdAt.Add(-time.Hour),
-			ExecutablePath:  "/Applications/ChatGPT.app/Contents/Resources/codex",
+			ExecutablePath:  testpath.Abs("/Applications/ChatGPT.app/Contents/Resources/codex"),
 			ArgumentsDigest: digestOf('4'),
 		},
 	}
@@ -70,7 +72,7 @@ func TestCheckpointCommandPreparesResumesAndVerifiesWithoutCallerDigests(t *test
 		"--project-root", root,
 		"--thread-id", "019f5a6e-fba1-7cd3-8421-677d5431bd12",
 		"--resume-intent", "Continue P14 in this exact task",
-		"--plan-path", ".context/plan.md",
+		"--plan-path", filepath.Join(".context", "plan.md"),
 		"--last-completed", "P13",
 		"--resume-at", "P14",
 		"--method-run-absence", "installed acceptance has no MethodRun",

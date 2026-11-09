@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"os"
 	"os/exec"
@@ -975,7 +976,7 @@ func syntheticFrozenP14BasisForP13() frozenP14Basis {
 		},
 		SelectedProject: selectedProjectP14Basis{
 			ProjectID:                  "qnt_e3149c17",
-			ProjectRoot:                "/project",
+			ProjectRoot:                testpath.Abs("/project"),
 			ProfileGeneration:          "v1",
 			ProfilePayloadDigest:       p14TestDigest("profile"),
 			ProfileBasisDigest:         p14TestDigest("profile-basis"),
@@ -1358,22 +1359,6 @@ func publishP14NoClobber(
 	return nil
 }
 
-func syncP14Directory(root *os.Root, path string, label string) error {
-	directory, err := root.Open(path)
-	if err != nil {
-		return fmt.Errorf("open P14 %s for sync: %w", label, err)
-	}
-	syncErr := directory.Sync()
-	closeErr := directory.Close()
-	if syncErr != nil {
-		return fmt.Errorf("sync P14 %s: %w", label, syncErr)
-	}
-	if closeErr != nil {
-		return fmt.Errorf("close P14 %s: %w", label, closeErr)
-	}
-	return nil
-}
-
 func createP14Temporary(
 	root *os.Root,
 	finalName string,
@@ -1404,8 +1389,8 @@ func completePreparedInputForTest(
 	memoryFixture := syntheticP14MemoryReadFixture()
 	sources := p14PreparedScenarioSources{
 		Context:               context.Background(),
-		Executable:            "/synthetic/haft",
-		ProjectRoot:           "/synthetic/project",
+		Executable:            testpath.Abs("/synthetic/haft"),
+		ProjectRoot:           testpath.Abs("/synthetic/project"),
 		ExecutableDigest:      p14TestDigest("synthetic-candidate"),
 		ExpectedFPFRevision:   strings.Repeat("a", 40),
 		MemoryFixture:         memoryFixture,
@@ -1436,7 +1421,7 @@ func completePreparedInputForTest(
 				GitHead:             strings.Repeat("1", 40),
 				P13GitStatusDigest:  p14TestDigest("git-status"),
 				DirtyStateDigest:    p14TestDigest("dirty-state"),
-				ExecutablePath:      "/private/tmp/haft-v9-p14-candidate",
+				ExecutablePath:      testpath.Abs("/private/tmp/haft-v9-p14-candidate"),
 				ExecutableDigest:    p14TestDigest("candidate"),
 				QueryDatabaseDigest: p14TestDigest("query-db"),
 				FPFRevision:         strings.Repeat("2", 40),
@@ -1447,7 +1432,7 @@ func completePreparedInputForTest(
 			},
 			SelectedProject: selectedProjectP14Basis{
 				ProjectID:                  "qnt_e3149c17",
-				ProjectRoot:                "/project",
+				ProjectRoot:                testpath.Abs("/project"),
 				ProfileGeneration:          "v2",
 				ProfilePayloadDigest:       p14TestDigest("profile"),
 				ProfileBasisDigest:         p14TestDigest("profile-basis"),
@@ -1459,9 +1444,9 @@ func completePreparedInputForTest(
 				GraphMaterializationDigest: p14TestDigest("graph"),
 			},
 			Carriers: []installedCarrierBasis{
-				{Kind: "agent_instructions", Path: "/project/AGENTS.md", Digest: p14TestDigest("agents")},
-				{Kind: "skill_carriers_root", Path: "/skills", Digest: p14TestDigest("skill")},
-				{Kind: "mcp_config", Path: "/project/.codex/config.toml", Digest: p14TestDigest("mcp")},
+				{Kind: "agent_instructions", Path: testpath.Abs("/project/AGENTS.md"), Digest: p14TestDigest("agents")},
+				{Kind: "skill_carriers_root", Path: testpath.Abs("/skills"), Digest: p14TestDigest("skill")},
+				{Kind: "mcp_config", Path: testpath.Abs("/project/.codex/config.toml"), Digest: p14TestDigest("mcp")},
 			},
 		},
 		Bindings:  syntheticPreparedP14Bindings(contract.BindingGroups),

@@ -198,7 +198,7 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		result.Failure = "capture_incomplete"
 	}
 	result.PipeDrainUncertain = outputDrainUncertain(drains.stdoutComplete, drains.stderrComplete, deadline.Err(), result.Failure)
-	if result.Started && command.ProcessState != nil && command.ProcessState.ExitCode() >= 0 {
+	if result.Started && command.ProcessState != nil && exitCodeReported(command) {
 		exitCode := command.ProcessState.ExitCode()
 		result.ExitCode = &exitCode
 	}

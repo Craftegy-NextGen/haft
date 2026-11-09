@@ -25,6 +25,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/runtimemechanism"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type targetClosureFixture struct {
@@ -577,7 +579,7 @@ func stageWithPredecessor(
 		t.Fatalf("projecttypeenvassertionreport.NewReport(): %v", err)
 	}
 	profileRoot, err := projectprofile.NewProjectRootV1(
-		"/tmp/haft-stage-revalidation-" + project.String(),
+		testpath.Abs("/tmp/haft-stage-revalidation-") + project.String(),
 	)
 	if err != nil {
 		t.Fatalf("NewProjectRootV1(): %v", err)

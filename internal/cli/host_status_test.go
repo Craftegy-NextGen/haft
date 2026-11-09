@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"slices"
@@ -193,7 +194,7 @@ func TestUnownedSkillRootCurrentnessDistinguishesAbsentMatchingAndDifferingRoots
 	if err := os.MkdirAll(projectRoot, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("HOME", filepath.Join(t.TempDir(), "home"))
+	testpath.SetHome(t, filepath.Join(t.TempDir(), "home"))
 	runtime, err := currentHostPublicationRuntimeFromProcess()
 	if err != nil {
 		t.Fatalf("currentHostPublicationRuntimeFromProcess: %v", err)

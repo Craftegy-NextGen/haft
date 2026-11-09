@@ -373,7 +373,7 @@ func writeEvidenceCarrier(haftDir, artifactRef string, item EvidenceItem) (evide
 	if err := os.Rename(tempPath, projection.Path); err != nil {
 		return projection, fmt.Errorf("publish evidence carrier %s: %w", projection.Path, err)
 	}
-	directory, err := os.Open(dir)
+	directory, err := openDirectoryForSync(dir)
 	if err != nil {
 		return projection, fmt.Errorf("open evidence carrier directory for sync: %w", err)
 	}

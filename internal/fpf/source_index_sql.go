@@ -1748,15 +1748,3 @@ func removeSQLiteBuildFiles(path string) {
 	_ = os.Remove(path + "-wal")
 	_ = os.Remove(path + "-shm")
 }
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open source query index directory: %w", err)
-	}
-	defer func() { _ = directory.Close() }()
-	if err := directory.Sync(); err != nil {
-		return fmt.Errorf("sync source query index directory: %w", err)
-	}
-	return nil
-}

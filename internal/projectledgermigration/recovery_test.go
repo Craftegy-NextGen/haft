@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"strings"
@@ -125,7 +126,7 @@ func newCurrentUnboundRecoveryFixture(
 	t.Helper()
 	home := canonicalTempDir(t)
 	root := canonicalTempDir(t)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	haftDir := filepath.Join(root, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {
 		t.Fatalf("create fixture .haft: %v", err)

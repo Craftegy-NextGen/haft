@@ -1,4 +1,4 @@
-//go:build darwin || linux
+//go:build darwin || linux || windows
 
 package cli
 
@@ -18,7 +18,7 @@ func TestStatusReportsPredecessorRestartCheckpointWithoutFailing(t *testing.T) {
 	if err := os.Mkdir(haftDirectory, 0o700); err != nil {
 		t.Fatalf("create .haft: %v", err)
 	}
-	if err := os.Mkdir(restartDirectory, 0o700); err != nil {
+	if err := createPrivateTestDirectory(restartDirectory); err != nil {
 		t.Fatalf("create restart directory: %v", err)
 	}
 	writePrivateTestFile(
@@ -48,12 +48,5 @@ func TestStatusReportsPredecessorRestartCheckpointWithoutFailing(t *testing.T) {
 	}
 	if string(after) != string(predecessor) {
 		t.Fatal("status changed predecessor checkpoint bytes")
-	}
-}
-
-func writePrivateTestFile(t *testing.T, path string, content []byte) {
-	t.Helper()
-	if err := os.WriteFile(path, content, 0o600); err != nil {
-		t.Fatalf("write %s: %v", filepath.Base(path), err)
 	}
 }

@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"os"
 	"path/filepath"
 	"testing"
@@ -65,7 +66,7 @@ func TestTypedPublicInitMigratesExactHistoricalJSONMCPAliases(
 				projectRoot,
 			)
 			defer restoreDirectory()
-			t.Setenv("HOME", homeRoot)
+			testpath.SetHome(t, homeRoot)
 
 			configPath := testCase.path(projectRoot, homeRoot)
 			if err := os.MkdirAll(
@@ -218,7 +219,7 @@ func TestTypedPublicInitRejectsModifiedHistoricalJSONMCPAliases(
 				projectRoot,
 			)
 			defer restoreDirectory()
-			t.Setenv("HOME", homeRoot)
+			testpath.SetHome(t, homeRoot)
 
 			configPath := testCase.path(projectRoot, homeRoot)
 			if err := os.MkdirAll(
@@ -284,7 +285,7 @@ func TestTypedPublicAirMigratesSharedHistoricalCodexAlias(
 	homeRoot := physicalInitTestTempDir(t)
 	restoreDirectory := changeInitTestDirectory(t, projectRoot)
 	defer restoreDirectory()
-	t.Setenv("HOME", homeRoot)
+	testpath.SetHome(t, homeRoot)
 
 	configPath := filepath.Join(
 		projectRoot,

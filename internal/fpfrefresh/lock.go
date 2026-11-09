@@ -16,6 +16,8 @@ import (
 	"strings"
 
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 const IntegrationLockSchemaVersion = "haft.fpf-integration-lock/v1"
@@ -361,7 +363,7 @@ func WriteIntegrationLock(path string, lock IntegrationLock) error {
 		return fmt.Errorf("replace integration lock: %w", err)
 	}
 	keepTemporary = false
-	directory, err := os.Open(filepath.Dir(cleanPath))
+	directory, err := openDirectoryForSync(filepath.Dir(cleanPath))
 	if err != nil {
 		return fmt.Errorf("open integration lock directory for fsync: %w", err)
 	}
@@ -436,7 +438,7 @@ func openIntegrationDatabaseReadOnly(path string) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("resolve FPF index path: %w", err)
 	}
-	readOnlyURI := url.URL{Scheme: "file", Path: absolutePath}
+	readOnlyURI := url.URL{Scheme: "file", Path: sqliteuri.Path(absolutePath)}
 	query := readOnlyURI.Query()
 	query.Set("mode", "ro")
 	readOnlyURI.RawQuery = query.Encode()

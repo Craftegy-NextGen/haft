@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"fmt"
+	"github.com/m0n0x41d/haft/internal/testpath"
 	"io"
 	"math"
 	"os"
@@ -315,7 +316,7 @@ func TestApplyMigratesConfiguredDetachedLedgerCopyWithoutHostEffects(t *testing.
 	hostBefore := snapshotHostCarriers(t, projectRoot)
 
 	temporaryHome := canonicalTempDir(t)
-	t.Setenv("HOME", temporaryHome)
+	testpath.SetHome(t, temporaryHome)
 	destinationDB := filepath.Join(
 		temporaryHome,
 		".haft",
@@ -461,7 +462,7 @@ func TestApplyMigratesConfiguredPreBindingLedgerCopy(t *testing.T) {
 	hostBefore := snapshotHostCarriers(t, projectRoot)
 
 	temporaryHome := canonicalTempDir(t)
-	t.Setenv("HOME", temporaryHome)
+	testpath.SetHome(t, temporaryHome)
 	destinationDB := filepath.Join(
 		temporaryHome,
 		".haft",
@@ -779,7 +780,7 @@ func newBundledPrebindingCopyFixture(
 		t.Fatalf("create fixture project identity: %v", err)
 	}
 	home := canonicalTempDir(t)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	databasePath := filepath.Join(
 		home,
 		".haft",
@@ -802,7 +803,7 @@ func newUnboundSchemaFrontierFixture(
 	t.Helper()
 	home := canonicalTempDir(t)
 	root := canonicalTempDir(t)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	haftDir := filepath.Join(root, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {
 		t.Fatalf("create .haft: %v", err)
@@ -855,7 +856,7 @@ func newCurrentProjectFixture(t *testing.T) currentProjectFixture {
 	t.Helper()
 	home := canonicalTempDir(t)
 	root := canonicalTempDir(t)
-	t.Setenv("HOME", home)
+	testpath.SetHome(t, home)
 	haftDir := filepath.Join(root, ".haft")
 	if err := os.MkdirAll(haftDir, 0o755); err != nil {
 		t.Fatalf("create .haft: %v", err)

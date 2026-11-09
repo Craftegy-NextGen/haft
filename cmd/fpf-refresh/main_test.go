@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/m0n0x41d/haft/internal/fpfrefresh"
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestJoinCleanupResult(t *testing.T) {
@@ -104,7 +105,7 @@ func TestBuildIndexerExecutablePropagatesCleanupFailures(t *testing.T) {
 		if err != nil {
 			t.Fatalf("buildIndexerExecutableWithOperations() error = %v", err)
 		}
-		if path != filepath.Join(directory, "haft-fpf-indexer") {
+		if path != testpath.Exe(filepath.Join(directory, "haft-fpf-indexer")) {
 			t.Fatalf("indexer path = %q", path)
 		}
 		if err := cleanup(); !errors.Is(err, cleanupFailure) {

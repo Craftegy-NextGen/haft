@@ -11,6 +11,7 @@ import (
 
 	"github.com/m0n0x41d/haft/db"
 	"github.com/m0n0x41d/haft/internal/projectledger"
+	"github.com/m0n0x41d/haft/internal/sqliteuri"
 )
 
 type serveMigrationSnapshot struct {
@@ -38,7 +39,7 @@ func createServeMigrationSnapshot(
 		afterSchema,
 		at,
 	)
-	if err := requireSnapshotPathAbsent(partialPath); err != nil {
+	if err := reserveSnapshotPartialPath(partialPath); err != nil {
 		return serveMigrationSnapshot{}, err
 	}
 	if err := requireSnapshotPathAbsent(finalPath); err != nil {
@@ -137,7 +138,7 @@ func requireSnapshotPathAbsent(path string) error {
 }
 
 func syncSnapshotFile(path string) error {
-	file, err := os.Open(path)
+	file, err := openFileForSync(path)
 	if err != nil {
 		return fmt.Errorf("open serve migration snapshot for sync: %w", err)
 	}
@@ -148,22 +149,6 @@ func syncSnapshotFile(path string) error {
 	}
 	if closeErr != nil {
 		return fmt.Errorf("close synced serve migration snapshot: %w", closeErr)
-	}
-	return nil
-}
-
-func syncSnapshotDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("open serve migration snapshot directory: %w", err)
-	}
-	syncErr := directory.Sync()
-	closeErr := directory.Close()
-	if syncErr != nil {
-		return fmt.Errorf("sync serve migration snapshot directory: %w", syncErr)
-	}
-	if closeErr != nil {
-		return fmt.Errorf("close serve migration snapshot directory: %w", closeErr)
 	}
 	return nil
 }
@@ -181,7 +166,7 @@ func verifyServeMigrationSnapshot(
 	query.Set("mode", "ro")
 	dsn := url.URL{
 		Scheme:   "file",
-		Path:     path,
+		Path:     sqliteuri.Path(path),
 		RawQuery: query.Encode(),
 	}
 	database, err := sql.Open("sqlite", dsn.String())
@@ -254,7 +239,7 @@ func requireSecureSnapshotFile(path string) error {
 	if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
 		return fmt.Errorf("serve migration snapshot is not a regular file")
 	}
-	if info.Mode().Perm() != 0o600 {
+	if insecureSnapshotFileMode(info, path) {
 		return fmt.Errorf(
 			"serve migration snapshot mode = %04o, want 0600",
 			info.Mode().Perm(),

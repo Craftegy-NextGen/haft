@@ -73,7 +73,7 @@ func validateCoreEffectReceipt(
 	beforeSchema int,
 	afterSchema int,
 ) error {
-	if !canonicalNonRootPath(projectRoot) ||
+	if !canonicalProjectRootPath(projectRoot) ||
 		!canonicalNonRootPath(databasePath) {
 		return fmt.Errorf("core effect receipt path is invalid")
 	}
@@ -320,7 +320,7 @@ func NewHostManifestBinding(
 			"host manifest binding identity is not canonical",
 		)
 	}
-	if !canonicalNonRootPath(store.Root()) ||
+	if !canonicalProjectRootPath(store.Root()) ||
 		!canonicalNonRootPath(store.Path()) ||
 		store.Path() == store.Root() {
 		return HostManifestBinding{}, fmt.Errorf(
@@ -624,7 +624,7 @@ func validateCoordinatorPlacement(
 	coordinator initfs.PublicationCoordinator,
 	prepared []preparedHostPublication,
 ) error {
-	if !canonicalNonRootPath(coordinator.Root()) ||
+	if !canonicalProjectRootPath(coordinator.Root()) ||
 		!canonicalNonRootPath(coordinator.LockPath()) {
 		return fmt.Errorf("publication coordinator is invalid")
 	}

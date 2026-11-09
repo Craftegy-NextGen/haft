@@ -21,6 +21,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/projecttypeenvtransitioncompatibility"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
 	_ "modernc.org/sqlite"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 var (
@@ -708,7 +710,7 @@ func TestProjectTypeEnvStageIdentityTracksProfileLedgerBasis(t *testing.T) {
 	changedBasis, changedAssessment := mustStageProfileAssessment(
 		t,
 		executable.snapshot,
-		"/tmp/haft-stage-profile-other",
+		testpath.Abs("/tmp/haft-stage-profile-other"),
 		projecttypeenvprofilefit.CurrentRuleEdition(),
 	)
 	changedBasisInput.ProfileLedgerRevision = changedBasis.LedgerRevision()
@@ -736,13 +738,13 @@ func TestProjectTypeEnvStageProfilePostureIsClosedAndCanonical(t *testing.T) {
 	basis, leftProfile := mustStageProfileAssessment(
 		t,
 		executable.snapshot,
-		"/tmp/haft-stage-profile-canonical",
+		testpath.Abs("/tmp/haft-stage-profile-canonical"),
 		projecttypeenvprofilefit.CurrentRuleEdition(),
 	)
 	_, rightProfile := mustStageProfileAssessment(
 		t,
 		executable.snapshot,
-		"/tmp/haft-stage-profile-canonical",
+		testpath.Abs("/tmp/haft-stage-profile-canonical"),
 		projecttypeenvprofilefit.CurrentRuleEdition(),
 	)
 	leftInput := stageGenesisInput(t, 31)
@@ -785,7 +787,7 @@ func TestProjectTypeEnvStageProfilePostureIsClosedAndCanonical(t *testing.T) {
 	_, unavailable := mustStageProfileAssessment(
 		t,
 		executable.snapshot,
-		"/tmp/haft-stage-profile-canonical",
+		testpath.Abs("/tmp/haft-stage-profile-canonical"),
 		futureEdition,
 	)
 	if _, ok := unavailable.(projecttypeenvprofilefit.Unavailable); !ok {
@@ -956,7 +958,7 @@ func stageGenesisInput(t *testing.T, revision uint64) ProjectTypeEnvStageInput {
 	profileBasis, profile := mustStageProfileAssessment(
 		t,
 		executable.snapshot,
-		"/tmp/haft-stage-profile",
+		testpath.Abs("/tmp/haft-stage-profile"),
 		projecttypeenvprofilefit.CurrentRuleEdition(),
 	)
 	compatibility := mustInitialStageCompatibility(t, composite)

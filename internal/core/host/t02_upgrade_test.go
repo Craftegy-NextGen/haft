@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 var t02GeneratedFixtures = map[string]string{
@@ -96,8 +98,8 @@ func TestT02CopiedProjectUpgradesT01ARAssetsAndAddresses(t *testing.T) {
 	copyRoot := filepath.Join(parent, "copy")
 	oldSource := filepath.Join(parent, "source-old")
 	newSource := filepath.Join(parent, "source-new")
-	oldBinary := filepath.Join(parent, "binary-old")
-	newBinary := filepath.Join(parent, "binary-new")
+	oldBinary := testpath.Exe(filepath.Join(parent, "binary-old"))
+	newBinary := testpath.Exe(filepath.Join(parent, "binary-new"))
 	for _, path := range []string{oldRoot, copyRoot, oldSource} {
 		if err := os.Mkdir(path, 0755); err != nil {
 			t.Fatal(err)

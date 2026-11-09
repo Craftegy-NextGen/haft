@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 type exactWorkSupportFixtureV1 struct {
@@ -516,7 +518,7 @@ func exactObservedProjectBasisForWorkV1(
 	}
 	basis, err := NewObservedProjectBasisV1(
 		ObservedProjectBasisRefV1{v1Reference: v1Reference{value: "observed-project-basis:1"}},
-		ProjectRootV1{value: "/tmp/haft-project"},
+		ProjectRootV1{value: testpath.Abs("/tmp/haft-project")},
 		window,
 		[]ObservedProjectSignalV1{signal},
 		ObservedProjectDetectorVersionV1{value: "detector-v1"},
@@ -536,7 +538,7 @@ func exactWorkSupportBindingsV1(t *testing.T, sessionRef string) MethodParameter
 	}{
 		{name: profileOnboardingClassifierParameterV1, value: "h-onboard/v9"},
 		{name: profileOnboardingPolicyParameterV1, value: "profile-policy/v1"},
-		{name: profileOnboardingProjectRootParameterV1, value: "/tmp/haft-project"},
+		{name: profileOnboardingProjectRootParameterV1, value: testpath.Abs("/tmp/haft-project")},
 		{name: profileOnboardingSessionParameterV1, value: sessionRef},
 	}
 	bindings, err := mapSliceV1(values, func(_ int, value struct {

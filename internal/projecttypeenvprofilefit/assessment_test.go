@@ -10,6 +10,8 @@ import (
 	"github.com/m0n0x41d/haft/internal/projectprofile"
 	"github.com/m0n0x41d/haft/internal/projecttypeenvprofilebasis"
 	"github.com/m0n0x41d/haft/internal/typedmemory"
+
+	"github.com/m0n0x41d/haft/internal/testpath"
 )
 
 func TestAssessExactAbsenceIsUnderdetermined(t *testing.T) {
@@ -434,7 +436,7 @@ func fitPayload(
 
 func fitProjectRoot(t *testing.T) projectprofile.ProjectRootV1 {
 	t.Helper()
-	value, err := projectprofile.NewProjectRootV1("/tmp/haft-profile-fit")
+	value, err := projectprofile.NewProjectRootV1(testpath.Abs("/tmp/haft-profile-fit"))
 	if err != nil {
 		t.Fatal(err)
 	}

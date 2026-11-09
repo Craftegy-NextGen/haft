@@ -399,11 +399,15 @@ func snapshotTreeMetadata(
 ) []string {
 	t.Helper()
 	snapshot := make([]string, 0)
-	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
+	err := filepath.WalkDir(root, func(path string, _ os.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
-		info, err := entry.Info()
+		// os.Lstat, not DirEntry.Info: on Windows the entry carries the parent
+		// listing's copy of a directory's times, which NTFS refreshes lazily, so
+		// the first snapshot can show a directory older than a file just
+		// created in it. On Unix both calls are one lstat (ADR-093 E1).
+		info, err := os.Lstat(path)
 		if err != nil {
 			return err
 		}
