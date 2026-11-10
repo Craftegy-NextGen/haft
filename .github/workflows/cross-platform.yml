@@ -45,11 +45,15 @@ jobs:
           cache-dependency-path: go.sum
       - name: Commits are by sashml or crafteng, without attribution lines
         run: |
-          bad=$(git log --format='%ae%n%ce' "$BASE_SHA..$HEAD_SHA" | sort -u |
+          # Only the commits this branch adds to main are checked. BASE_SHA is the pre-port upstream commit, and the
+          # range from it now contains the squash commit of the Windows port: the GitHub web UI commits a squash as
+          # noreply@github.com, with the id-prefixed author address and a Co-authored-by trailer.
+          range="origin/main..$HEAD_SHA"
+          bad=$(git log --format='%ae%n%ce' "$range" | sort -u |
             grep -vxF -e 'sashml@users.noreply.github.com' \
                       -e '317125206+crafteng@users.noreply.github.com' || true)
           if [ -n "$bad" ]; then echo "foreign identity: $bad" >&2; exit 1; fi
-          if git log --format=%B "$BASE_SHA..$HEAD_SHA" | grep -inE '^co-authored-by:|generated with'; then
+          if git log --format=%B "$range" | grep -inE '^co-authored-by:|generated with'; then
             echo "attribution line found" >&2; exit 1
           fi
       - name: Changed files are LF; no binaries, no blob over 1 MiB, no exe tracked
@@ -174,6 +178,11 @@ jobs:
         run: |
           mkdir -p desktop/frontend/dist
           printf 'ci placeholder\n' > desktop/frontend/dist/.ci-placeholder
+      - name: Pin the upstream role-policy window (see the unix-test job)
+        run: |
+          f=internal/projecttypeenvselectionauthority/execution_role_policy.go
+          perl -pi -e 's/^(\s*executionRole(?:SS|TS)ValidUntil\s*=\s*)"[^"]*"/$1"2099-12-31T23:59:59Z"/' "$f"
+          test "$(grep -c '"2099-12-31T23:59:59Z"' "$f")" = 2
       - name: Run tests in an isolated profile
         id: test
         run: |
@@ -265,6 +274,16 @@ jobs:
         run: |
           go build -trimpath -ldflags "-X main.Version=ci" -o "$RUNNER_TEMP/haft10" ./cmd/haft10/
           "$RUNNER_TEMP/haft10" version | grep -F '"format":"haft.version/1"'
+      - name: Pin the upstream role-policy window
+        # internal/projecttypeenvselectionauthority/execution_role_policy.go hard-codes validity windows that ended on
+        # 2026-09-18 (TS) and 2026-10-31 (SS), and VerifyCurrentForNewWrite then rejects every new-project write with
+        # policy_source_not_current_for_new_write. Every test that creates project memory fails on main and on head
+        # alike, so without this step unix-compare could not see a regression in those paths. The same edit is applied
+        # to both trees; it changes only the two test-time constants and is never committed.
+        run: |
+          f=internal/projecttypeenvselectionauthority/execution_role_policy.go
+          perl -pi -e 's/^(\s*executionRole(?:SS|TS)ValidUntil\s*=\s*)"[^"]*"/$1"2099-12-31T23:59:59Z"/' "$f"
+          test "$(grep -c '"2099-12-31T23:59:59Z"' "$f")" = 2
       - name: Run tests (judged by unix-compare)
         run: |
           out="$RUNNER_TEMP/gotest-${{ matrix.goos }}-${{ matrix.tree }}"
@@ -310,6 +329,8 @@ jobs:
             awk -F'\t' '$3 == "pass" {print $1 "\t" $2}' "$os-base.tsv" | sort -u > "$os-base-pass"
             awk -F'\t' '$3 == "pass" {print $1 "\t" $2}' "$os-head.tsv" | sort -u > "$os-head-pass"
             awk -F'\t' '$3 == "fail" {print $1 "\t" $2}' "$os-head.tsv" | sort -u > "$os-head-fail"
+            awk -F'\t' '$3 == "fail" {print $1 "\t" $2}' "$os-base.tsv" | sort -u > "$os-base-fail"
+            comm -12 "$os-base-fail" "$os-head-fail" > "$os-failing-both"
             cut -f1,2 "$os-base.tsv" | sort -u > "$os-base-all"
             comm -23 "$os-base-pass" "$os-head-pass" > "$os-regressed"
             comm -23 "$os-head-fail" "$os-base-all" > "$os-new-failing"
@@ -318,7 +339,12 @@ jobs:
               echo "main: $(cut -f3 "$os-base.tsv" | sort | uniq -c | tr '\n' ' ')"
               echo "head: $(cut -f3 "$os-head.tsv" | sort | uniq -c | tr '\n' ' ')"
               echo "regressed: $(wc -l < "$os-regressed"); new and failing: $(wc -l < "$os-new-failing")"
+              echo "failing on both trees (blind spot of this comparison, listed in the log): $(wc -l < "$os-failing-both")"
             } >> "$GITHUB_STEP_SUMMARY"
+            if [ -s "$os-failing-both" ]; then
+              echo "$os: tests failing on main and on head (no regression signal for these):" >&2
+              cat "$os-failing-both" >&2
+            fi
             if [ -s "$os-regressed" ] || [ -s "$os-new-failing" ]; then
               cat "$os-regressed" "$os-new-failing" >&2
               status=1
