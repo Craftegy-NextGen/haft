@@ -1485,17 +1485,6 @@ func storeTypeEnvCompilerVariant(
 	return artifact
 }
 
-func replaceDatabasePath(activePath, replacementPath, archivedPath string) error {
-	if err := os.Rename(activePath, archivedPath); err != nil {
-		return fmt.Errorf("archive opened predecessor: %w", err)
-	}
-	if err := os.Rename(replacementPath, activePath); err != nil {
-		_ = os.Rename(archivedPath, activePath)
-		return fmt.Errorf("install predecessor replacement: %w", err)
-	}
-	return nil
-}
-
 func writeMinimalMetadataDatabase(
 	t *testing.T,
 	dbPath string,
