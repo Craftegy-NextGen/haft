@@ -698,8 +698,8 @@ func buildSourceIndexMetadata(
 		"indexed_sections":     "0",
 		"indexed_source_units": fmt.Sprintf("%d", sourceUnits),
 		"build_time":           buildTime.UTC().Format(time.RFC3339),
-		"spec_path":            filepath.Clean(specPath),
-		"readme_path":          filepath.Clean(readmePath),
+		"spec_path":            cleanMetaPath(specPath),
+		"readme_path":          cleanMetaPath(readmePath),
 		"schema_version":       fpf.SpecIndexSchemaVersion,
 	}
 }
