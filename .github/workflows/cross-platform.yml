@@ -45,11 +45,15 @@ jobs:
           cache-dependency-path: go.sum
       - name: Commits are by sashml or crafteng, without attribution lines
         run: |
-          bad=$(git log --format='%ae%n%ce' "$BASE_SHA..$HEAD_SHA" | sort -u |
+          # Only the commits this branch adds to main are checked. BASE_SHA is the pre-port upstream commit, and the
+          # range from it now contains the squash commit of the Windows port: the GitHub web UI commits a squash as
+          # noreply@github.com, with the id-prefixed author address and a Co-authored-by trailer.
+          range="origin/main..$HEAD_SHA"
+          bad=$(git log --format='%ae%n%ce' "$range" | sort -u |
             grep -vxF -e 'sashml@users.noreply.github.com' \
                       -e '317125206+crafteng@users.noreply.github.com' || true)
           if [ -n "$bad" ]; then echo "foreign identity: $bad" >&2; exit 1; fi
-          if git log --format=%B "$BASE_SHA..$HEAD_SHA" | grep -inE '^co-authored-by:|generated with'; then
+          if git log --format=%B "$range" | grep -inE '^co-authored-by:|generated with'; then
             echo "attribution line found" >&2; exit 1
           fi
       - name: Changed files are LF; no binaries, no blob over 1 MiB, no exe tracked
